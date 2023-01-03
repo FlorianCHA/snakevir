@@ -1,0 +1,152 @@
+tax_id,Nucleic_acid,genome,cluster,clade,kingdom,phylum,class,order,family,genus,species,no rank,how
+1034771,ssDNA(-),DNA,Anello,Varidnaviria,NA,DNA,NA,NA,Anelloviridae,NA,uncultured Anellovirus,root;environmental samples,NA
+10407,dsDNA-RT,DNA,Hepadna,Riboviria,Pararnavirae,Artverviricota,Revtraviricetes,Blubervirales,Hepadnaviridae,Orthohepadnavirus,Hepatitis B virus,root,NA
+10808,ssDNA,DNA,Parvo,Monodnaviria,Shotokuvirae,Cossaviricota,Quintoviricetes,Piccovirales,Parvoviridae,Brevihamaparvovirus,Dipteran brevihamaparvovirus 1,root;Aedes densonucleosis virus (STRAIN GKV 002 002);Aedes aegypti densovirus,NA
+11103,ssRNA(+),RNA,Flavi,Riboviria,Orthornavirae,Kitrinoviricota,Flasuviricetes,Amarillovirales,Flaviviridae,Hepacivirus,Hepacivirus C,root,NA
+11636,ssRNA-RT,RNA,Retro,Riboviria,Pararnavirae,Artverviricota,Revtraviricetes,Ortervirales,Retroviridae,Gammaretrovirus,Reticuloendotheliosis virus,root,NA
+11676,ssRNA-RT,RNA,Retro,Riboviria,Pararnavirae,Artverviricota,Revtraviricetes,Ortervirales,Retroviridae,Lentivirus,Human immunodeficiency virus 1,root,NA
+11836,ssRNA-RT,RNA,Retro,Riboviria,Pararnavirae,Artverviricota,Revtraviricetes,Ortervirales,Retroviridae,Gammaretrovirus,Reticuloendotheliosis virus,root;Spleen necrosis virus,NA
+1197951,dsDNA,DNA,Autographi,Duplodnaviria;Heunggongvirae,Heunggongvirae,Uroviricota,Caudoviricetes,Caudovirales,Autographiviridae,NA,Celeribacter phage P12053L,root;unclassified Autographiviridae,NA
+1229784,dsDNA,DNA,Sipho,Duplodnaviria;Heunggongvirae,Heunggongvirae,Uroviricota,Caudoviricetes,Caudovirales,Siphoviridae,Pahexavirus,Propionibacterium virus P144,root;Propionibacterium phage P14,NA
+1229788,dsDNA,DNA,Sipho,Duplodnaviria;Heunggongvirae,Heunggongvirae,Uroviricota,Caudoviricetes,Caudovirales,Siphoviridae,Pahexavirus,Propionibacterium virus P105,root;Propionibacterium phage P105,NA
+1235653,dsDNA,DNA,Sipho,Duplodnaviria;Heunggongvirae,Heunggongvirae,Uroviricota,Caudoviricetes,Caudovirales,Siphoviridae,Pahexavirus,Propionibacterium virus PHL111M01,root;Propionibacterium phage PHL111M01,NA
+129525,ssRNA-RT,RNA,Retro,Human endogenous retroviruses;Riboviria,Pararnavirae,Artverviricota,Revtraviricetes,Ortervirales,Retroviridae,NA,Human endogenous retrovirus H,root;unclassified Retroviridae;HERV-H/env62,NA
+129527,ssRNA-RT,RNA,Retro,Human endogenous retroviruses;Riboviria,Pararnavirae,Artverviricota,Revtraviricetes,Ortervirales,Retroviridae,NA,Human endogenous retrovirus H,root;unclassified Retroviridae;HERV-H/env59,NA
+1300323,dsRNA,RNA,Toti,Riboviria,Orthornavirae,Duplornaviricota,Chrymotiviricetes,Ghabrivirales,Totiviridae,Totivirus,Scheffersomyces segobiensis virus L,root,NA
+1307800,ssRNA(+),RNA,Flavi,Riboviria,Orthornavirae,Kitrinoviricota,Flasuviricetes,Amarillovirales,Flaviviridae,Pegivirus,Pegivirus A,root,NA
+136966,ssDNA(-),DNA,Anello,Varidnaviria,NA,DNA,NA,NA,Anelloviridae,NA,SEN virus,root;unclassified Anelloviridae,NA
+1400257,ssRNA-RT,RNA,Retro,Reticuloendotheliosis virus group;Riboviria,Pararnavirae,Artverviricota,Revtraviricetes,Ortervirales,Retroviridae,Gammaretrovirus,Duck infectious anemia virus,root;unclassified Reticuloendotheliosis virus group,NA
+1406780,dsDNA,DNA,Podo,Duplodnaviria;Heunggongvirae,Heunggongvirae,Uroviricota,Caudoviricetes,Caudovirales,Podoviridae,NA,Acinetobacter phage Presley,root;unclassified Podoviridae,NA
+1407671,dsDNA,DNA,Sipho,Duplodnaviria;Heunggongvirae,Heunggongvirae,Uroviricota,Caudoviricetes,Caudovirales,Siphoviridae,NA,uncultured Mediterranean phage uvMED,root;environmental samples,NA
+1500799,dsDNA,DNA,Sipho,Duplodnaviria;Heunggongvirae,Heunggongvirae,Uroviricota,Caudoviricetes,Caudovirales,Siphoviridae,Pahexavirus,Propionibacterium virus PHL025M00,root;Propionibacterium phage PHL025M00,NA
+1500821,dsDNA,DNA,Sipho,Duplodnaviria;Heunggongvirae,Heunggongvirae,Uroviricota,Caudoviricetes,Caudovirales,Siphoviridae,Pahexavirus,Propionibacterium virus PHL141N00,root;Propionibacterium phage PHL141N00,NA
+1513196,ssDNA,DNA,Parvo,Monodnaviria,Shotokuvirae,Cossaviricota,Quintoviricetes,Piccovirales,Parvoviridae,Brevihamaparvovirus,Dipteran brevihamaparvovirus 1,root;Aedes albopictus densovirus;Aedes aegypti densovirus 2,NA
+1627834,ssRNA(+),RNA,Flavi,Riboviria,Orthornavirae,Kitrinoviricota,Flasuviricetes,Amarillovirales,Flaviviridae,Pegivirus,Pegivirus C,root;GB virus C;Human pegivirus genotype 2,NA
+1647470,dsDNA,DNA,Sipho,Duplodnaviria;Heunggongvirae,Heunggongvirae,Uroviricota,Caudoviricetes,Caudovirales,Siphoviridae,NA,Gordonia phage GMA1,root;unclassified Siphoviridae,NA
+1654780,dsDNA,DNA,Sipho,Duplodnaviria;Heunggongvirae,Heunggongvirae,Uroviricota,Caudoviricetes,Caudovirales,Siphoviridae,Pahexavirus,Propionibacterium phage Enoki,root;unclassified Pahexavirus,NA
+1654782,dsDNA,DNA,Sipho,Duplodnaviria;Heunggongvirae,Heunggongvirae,Uroviricota,Caudoviricetes,Caudovirales,Siphoviridae,Pahexavirus,Propionibacterium phage QueenBey,root;unclassified Pahexavirus,NA
+166123,ssRNA-RT,RNA,Retro,Human endogenous retroviruses;Riboviria,Pararnavirae,Artverviricota,Revtraviricetes,Ortervirales,Retroviridae,NA,Human endogenous retrovirus K,root;unclassified Retroviridae;Human endogenous retrovirus K115,NA
+167758,ssDNA(-),DNA,Anello,Varidnaviria,NA,DNA,NA,NA,Anelloviridae,NA,Torque teno virus,root;TTV-like virus DXL1;unclassified Anelloviridae,NA
+1678143,ssRNA(+),RNA,Hepe,Riboviria,Orthornavirae,Kitrinoviricota,Alsuviricetes,Hepelivirales,Hepeviridae,Orthohepevirus,Orthohepevirus A,root,NA
+1714362,dsRNA,RNA,Toti,Riboviria,Orthornavirae,Duplornaviricota,Chrymotiviricetes,Ghabrivirales,Totiviridae,NA,Red clover powdery mildew-associated totivirus 1,root;unclassified Totiviridae,NA
+1743410,ssDNA(-),DNA,Anello,Varidnaviria,NA,DNA,NA,NA,Anelloviridae,NA,Chimpanzee anellovirus,root;unclassified Anelloviridae,NA
+1755679,dsDNA,DNA,Myo,Duplodnaviria;Heunggongvirae,Heunggongvirae,Uroviricota,Caudoviricetes,Caudovirales,Myoviridae,NA,Bacillus phage BM5,root;unclassified Myoviridae,NA
+1758225,ssRNA(+),RNA,Flavi,Riboviria,Orthornavirae,Kitrinoviricota,Flasuviricetes,Amarillovirales,Flaviviridae,Pegivirus,Pegivirus A,root;Human pegivirus,NA
+185638,ssDNA,DNA,Parvo,Monodnaviria,Shotokuvirae,Cossaviricota,Quintoviricetes,Piccovirales,Parvoviridae,Protoambidensovirus,Dipteran protoambidensovirus 1,root;Culex pipiens densovirus,NA
+1906674,ssRNA(+),RNA,Noda,Riboviria,Orthornavirae,Kitrinoviricota,Magsaviricetes,Nodamuvirales,Nodaviridae,Betanodavirus,Betanodavirus sp.,root;unclassified Betanodavirus,NA
+1922471,ssRNA(+),RNA,Noda,Riboviria,Orthornavirae,Kitrinoviricota,Magsaviricetes,Nodamuvirales,Nodaviridae,NA,Beihai noda-like virus 18,root;unclassified RNA viruses ShiM-2016;unclassified Riboviria,NA | shi_fam  | shi_order  | shi_class  | shi-phyl  | shi_king 
+1922672,ssRNA(+),RNA,Noda,Riboviria,Orthornavirae,Kitrinoviricota,Magsaviricetes,Nodamuvirales,Nodaviridae,NA,Beihai shrimp virus 6,root;unclassified RNA viruses ShiM-2016;unclassified Riboviria,NA | shi_fam  | shi_order  | shi_class  | shi-phyl  | shi_king 
+1922780,ssRNA(+),RNA,Narna,Riboviria,Orthornavirae,Lenarviricota,Amabiliviricetes,Wolframvirales,Narnaviridae,NA,Changjiang narna-like virus 5,root;unclassified RNA viruses ShiM-2016;unclassified Riboviria,NA | shi_fam  | shi_order  | shi_class  | shi-phyl  | shi_king 
+1922877,ssRNA(+),RNA,Noda,Riboviria,Orthornavirae,Kitrinoviricota,Magsaviricetes,Nodamuvirales,Nodaviridae,NA,Hubei diptera virus 16,root;unclassified RNA viruses ShiM-2016;unclassified Riboviria,NA | shi_fam  | shi_order  | shi_class  | shi-phyl  | shi_king 
+1922928,ssRNA(+),RNA,Toli_unclass,Riboviria,Orthornavirae,Kitrinoviricota,Tolucaviricetes,Tolivirales,NA,NA,Hubei mosquito virus 4,root;unclassified RNA viruses ShiM-2016;unclassified Riboviria,NA | shi_order  | shi_class  | shi-phyl  | shi_king  | clustshi 
+1923015,dsRNA,RNA,Partiti,Riboviria,Orthornavirae,Pisuviricota,Duplopiviricetes,Durnavirales,Partitiviridae,NA,Hubei partiti-like virus 1,root;unclassified RNA viruses ShiM-2016;unclassified Riboviria,NA | shi_fam  | shi_order  | shi_class  | shi-phyl  | shi_king 
+1923026,dsRNA,RNA,Partiti,Riboviria,Orthornavirae,Pisuviricota,Duplopiviricetes,Durnavirales,Partitiviridae,NA,Hubei partiti-like virus 2,root;unclassified RNA viruses ShiM-2016;unclassified Riboviria,NA | shi_fam  | shi_order  | shi_class  | shi-phyl  | shi_king 
+1923250,dsRNA,RNA,Partiti,Riboviria,Orthornavirae,Pisuviricota,Duplopiviricetes,Durnavirales,Partitiviridae,NA,Hubei tetragnatha maxillosa virus 8,root;unclassified RNA viruses ShiM-2016;unclassified Riboviria,NA | shi_fam  | shi_order  | shi_class  | shi-phyl  | shi_king 
+1923335,ssRNA(+),RNA,Martelli_unclass,Riboviria,Orthornavirae,Kitrinoviricota,Alsuviricetes,Martellivirales,NA,NA,Hubei virga-like virus 2,root;unclassified RNA viruses ShiM-2016;unclassified Riboviria,NA | shi_order  | shi_class  | shi-phyl  | shi_king  | clustshi 
+1923697,dsRNA,RNA,Partiti,Riboviria,Orthornavirae,Pisuviricota,Duplopiviricetes,Durnavirales,Partitiviridae,NA,Wuhan cricket virus 2,root;unclassified RNA viruses ShiM-2016;unclassified Riboviria,NA | shi_fam  | shi_order  | shi_class  | shi-phyl  | shi_king 
+1923890,dsDNA,DNA,Myo,Duplodnaviria;Heunggongvirae,Heunggongvirae,Uroviricota,Caudoviricetes,Caudovirales,Myoviridae,Ripduovirus,Ralstonia phage RP31,root;unclassified Ripduovirus,NA
+1930825,ssRNA(+),RNA,Toga,Riboviria,Orthornavirae,Kitrinoviricota,Alsuviricetes,Martellivirales,Togaviridae,Alphavirus,Tai Forest alphavirus,root;unclassified Alphavirus,NA
+1958918,dsDNA,DNA,Podo,Duplodnaviria;Heunggongvirae,Heunggongvirae,Uroviricota,Caudoviricetes,Caudovirales,Podoviridae,NA,Pectobacterium phage vB_PatP_CB3,root;unclassified Podoviridae,NA
+1965354,dsDNA,DNA,Podo,Duplodnaviria;Heunggongvirae,Heunggongvirae,Uroviricota,Caudoviricetes,Caudovirales,Podoviridae,NA,Pectobacterium phage phiA41,root;unclassified Podoviridae,NA
+1980610,ssRNA(-),RNA,Phenui,Riboviria,Orthornavirae,Negarnaviricota,Ellioviricetes,Bunyavirales,Phenuiviridae,Phasivirus,Phasi Charoen-like phasivirus,root,NA
+2010279,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,Point-Douro narna-like virus,root;unclassified viruses,NA
+2027377,ssRNA(+),RNA,Noda,Riboviria,Orthornavirae,Kitrinoviricota,Magsaviricetes,Nodamuvirales,Nodaviridae,NA,Lone star tick nodavirus,root;unclassified Nodaviridae,NA
+2029657,dsDNA,DNA,Myo,Duplodnaviria;Heunggongvirae,Heunggongvirae,Uroviricota,Caudoviricetes,Caudovirales,Myoviridae,Phabquatrovirus,Bordetella virus PHB04,root;Bordetella phage vB_BbrM_PHB04,NA
+2045191,dsRNA,RNA,Toti,Riboviria,Orthornavirae,Duplornaviricota,Chrymotiviricetes,Ghabrivirales,Totiviridae,NA,Puccinia striiformis totivirus 3,root;unclassified Totiviridae,NA
+2045192,dsRNA,RNA,Toti,Riboviria,Orthornavirae,Duplornaviricota,Chrymotiviricetes,Ghabrivirales,Totiviridae,NA,Puccinia striiformis totivirus 4,root;unclassified Totiviridae,NA
+2045193,dsRNA,RNA,Toti,Riboviria,Orthornavirae,Duplornaviricota,Chrymotiviricetes,Ghabrivirales,Totiviridae,NA,Puccinia striiformis totivirus 5,root;unclassified Totiviridae,NA
+2055263,ssDNA(-),DNA,Anello,Varidnaviria,NA,DNA,NA,NA,Anelloviridae,NA,Anelloviridae sp.,root;unclassified Anelloviridae,NA
+2065036,ssDNA(-),DNA,Anello,Varidnaviria,NA,DNA,NA,NA,Anelloviridae,Betatorquevirus,Torque teno mini virus 10,root,NA
+2065047,ssDNA(-),DNA,Anello,Varidnaviria,NA,DNA,NA,NA,Anelloviridae,Gammatorquevirus,Torque teno midi virus 6,root,NA
+2065048,ssDNA(-),DNA,Anello,Varidnaviria,NA,DNA,NA,NA,Anelloviridae,Gammatorquevirus,Torque teno midi virus 7,root,NA
+2065049,ssDNA(-),DNA,Anello,Varidnaviria,NA,DNA,NA,NA,Anelloviridae,Gammatorquevirus,Torque teno midi virus 8,root,NA
+2065050,ssDNA(-),DNA,Anello,Varidnaviria,NA,DNA,NA,NA,Anelloviridae,Gammatorquevirus,Torque teno midi virus 9,root,NA
+2065052,ssDNA(-),DNA,Anello,Varidnaviria,NA,DNA,NA,NA,Anelloviridae,Gammatorquevirus,Torque teno midi virus 11,root,NA
+2079400,dsDNA,DNA,Sipho,Duplodnaviria;Heunggongvirae,Heunggongvirae,Uroviricota,Caudoviricetes,Caudovirales,Siphoviridae,Pahexavirus,Propionibacterium phage pa27,root;unclassified Pahexavirus,NA
+2079403,dsDNA,DNA,Sipho,Duplodnaviria;Heunggongvirae,Heunggongvirae,Uroviricota,Caudoviricetes,Caudovirales,Siphoviridae,Pahexavirus,Propionibacterium phage pa29399-1-D_2,root;unclassified Pahexavirus,NA
+2079406,dsDNA,DNA,Sipho,Duplodnaviria;Heunggongvirae,Heunggongvirae,Uroviricota,Caudoviricetes,Caudovirales,Siphoviridae,Pahexavirus,Propionibacterium phage pa33,root;unclassified Pahexavirus,NA
+2079407,dsDNA,DNA,Sipho,Duplodnaviria;Heunggongvirae,Heunggongvirae,Uroviricota,Caudoviricetes,Caudovirales,Siphoviridae,Pahexavirus,Propionibacterium phage pa35,root;unclassified Pahexavirus,NA
+2100421,dsDNA,DNA,Caudo_unclass,Duplodnaviria;Heunggongvirae,Heunggongvirae,Uroviricota,Caudoviricetes,Caudovirales,NA,NA,uncultured Caudovirales phage,root;environmental samples,NA
+2133760,dsDNA,DNA,Sipho,Duplodnaviria;Heunggongvirae,Heunggongvirae,Uroviricota,Caudoviricetes,Caudovirales,Siphoviridae,NA,Siphoviridae environmental samples,root;environmental samples,NA
+2170588,ssRNA,RNA,NA,unclassified ssRNA positive-strand viruses;Riboviria,NA,RNA,NA,NA,NA,NA,Cyril virus,root;unclassified ssRNA viruses;unclassified Riboviria,NA
+2202954,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,Circular genetic element sp.,root;unclassified viruses,NA
+2219103,ssDNA,DNA,Ino,Monodnaviria,Loebvirae,Hofneiviricota,Faserviricetes,Tubulavirales,Inoviridae,NA,Inoviridae sp.,root;unclassified Inoviridae,NA
+2250700,ssDNA,DNA,Parvo,Monodnaviria,Shotokuvirae,Cossaviricota,Quintoviricetes,Piccovirales,Parvoviridae,NA,Mosquito densovirus,root;unclassified Densovirinae,NA
+228277,ssRNA-RT,RNA,Retro,Human endogenous retroviruses;Riboviria,Pararnavirae,Artverviricota,Revtraviricetes,Ortervirales,Retroviridae,NA,Human endogenous retrovirus,root;unclassified Retroviridae;Human endogenous retrovirus HCML-ARV,NA
+2283020,dsDNA,DNA,Autographi,Duplodnaviria;Heunggongvirae,Heunggongvirae,Uroviricota,Caudoviricetes,Caudovirales,Autographiviridae,Votkovvirus,Pelagibacter phage HTVC119P,root;unclassified Votkovvirus,NA
+2304518,ssDNA,DNA,Parvo,Monodnaviria,Shotokuvirae,Cossaviricota,Quintoviricetes,Piccovirales,Parvoviridae,NA,Culex densovirus,root;unclassified Densovirinae,NA
+2419950,dsDNA,DNA,Sipho,Duplodnaviria;Heunggongvirae,Heunggongvirae,Uroviricota,Caudoviricetes,Caudovirales,Siphoviridae,Bridgettevirus,Arthrobacter virus Constance,root;Arthrobacter phage Constance,NA
+2419956,dsDNA,DNA,Sipho,Duplodnaviria;Heunggongvirae,Heunggongvirae,Uroviricota,Caudoviricetes,Caudovirales,Siphoviridae,Bridgettevirus,Arthrobacter virus Eileen,root;Arthrobacter phage Eileen,NA
+2419958,dsDNA,DNA,Sipho,Duplodnaviria;Heunggongvirae,Heunggongvirae,Uroviricota,Caudoviricetes,Caudovirales,Siphoviridae,Bridgettevirus,Arthrobacter virus Judy,root;Arthrobacter phage Judy,NA
+242527,dsDNA,DNA,Podo,Duplodnaviria;Heunggongvirae,Heunggongvirae,Uroviricota,Caudoviricetes,Caudovirales,Podoviridae,Lessievirus,Burkholderia virus Bcep22,root,NA
+2482770,ssRNA(+),RNA,Noda,Riboviria,Orthornavirae,Kitrinoviricota,Magsaviricetes,Nodamuvirales,Nodaviridae,Betanodavirus,Pseudodiaptomus annandalei nervous necrosis virus,root;unclassified Betanodavirus,NA
+2483663,dsDNA,DNA,Sipho,Duplodnaviria;Heunggongvirae,Heunggongvirae,Uroviricota,Caudoviricetes,Caudovirales,Siphoviridae,Ceetrepovirus,Corynebacterium phage PeteyPab,root;unclassified Ceetrepovirus,NA
+2483718,dsDNA,DNA,Sipho,Duplodnaviria;Heunggongvirae,Heunggongvirae,Uroviricota,Caudoviricetes,Caudovirales,Siphoviridae,Ceetrepovirus,Corynebacterium phage Cruella,root;unclassified Ceetrepovirus,NA
+2483719,dsDNA,DNA,Sipho,Duplodnaviria;Heunggongvirae,Heunggongvirae,Uroviricota,Caudoviricetes,Caudovirales,Siphoviridae,Ceetrepovirus,Corynebacterium phage Kimchi1738,root;unclassified Ceetrepovirus,NA
+2501398,ssDNA,DNA,Parvo,Monodnaviria,Shotokuvirae,Cossaviricota,Quintoviricetes,Piccovirales,Parvoviridae,NA,Aedes albopictus densovirus 7,root;unclassified Densovirinae,NA
+2559281,dsDNA,DNA,Podo,Duplodnaviria;Heunggongvirae,Heunggongvirae,Uroviricota,Caudoviricetes,Caudovirales,Podoviridae,NA,Roseobacter phage CRP-2,root;unclassified Podoviridae,NA
+2585031,NA,RNA,NA,Riboviria,NA,NA,NA,NA,NA,NA,Riboviria sp.,root;unclassified Riboviria,NA
+2587224,ssRNA(+),RNA,Mito,Riboviria,Orthornavirae,Lenarviricota,Howeltoviricetes,Cryppavirales,Mitoviridae,Mitovirus,Mitovirus sp.,root;unclassified Mitovirus,NA
+2588498,dsDNA,DNA,Sipho,Duplodnaviria;Heunggongvirae,Heunggongvirae,Uroviricota,Caudoviricetes,Caudovirales,Siphoviridae,NA,Arthrobacter phage Kumotta,root;unclassified Siphoviridae,NA
+2588500,dsDNA,DNA,Sipho,Duplodnaviria;Heunggongvirae,Heunggongvirae,Uroviricota,Caudoviricetes,Caudovirales,Siphoviridae,NA,Corynebacterium phage Bran,root;unclassified Siphoviridae,NA
+2588503,dsDNA,DNA,Sipho,Duplodnaviria;Heunggongvirae,Heunggongvirae,Uroviricota,Caudoviricetes,Caudovirales,Siphoviridae,Ceetrepovirus,Corynebacterium phage Stickynote,root;unclassified Ceetrepovirus,NA
+2591644,dsDNA,DNA,NA,Varidnaviria,NA,DNA,NA,NA,NA,NA,Prokaryotic dsDNA virus sp.,root;unclassified viruses;unclassified dsDNA viruses;unclassified DNA viruses,NA
+2592696,dsRNA,RNA,Toti,Riboviria,Orthornavirae,Duplornaviricota,Chrymotiviricetes,Ghabrivirales,Totiviridae,NA,Phakopsora totivirus A,root;unclassified Totiviridae,NA
+2592729,ssRNA(+),RNA,Virga,Riboviria,Orthornavirae,Kitrinoviricota,Alsuviricetes,Martellivirales,Virgaviridae,NA,Uromyces virgavirus G,root;unclassified Virgaviridae,NA
+2594177,ssRNA(+),RNA,Flavi,Riboviria,Orthornavirae,Kitrinoviricota,Flasuviricetes,Amarillovirales,Flaviviridae,Pegivirus,Pegivirus C,root;Human pegivirus genotype 1,NA
+2608295,ssDNA,DNA,Micro,Monodnaviria,Sangervirae,Phixviricota,Malgrandaviricetes,Petitvirales,Microviridae,Sinsheimervirus,Shigella phage SGF3,root;unclassified Sinsheimervirus,NA
+2653279,dsDNA,DNA,Sipho,Duplodnaviria;Heunggongvirae,Heunggongvirae,Uroviricota,Caudoviricetes,Caudovirales,Siphoviridae,Pahexavirus,Propionibacterium phage Cota,root;unclassified Pahexavirus,NA
+2655002,dsDNA,DNA,Podo,Duplodnaviria;Heunggongvirae,Heunggongvirae,Uroviricota,Caudoviricetes,Caudovirales,Podoviridae,NA,Acinetobacter phage VB_ApiP_XC38,root;unclassified Podoviridae,NA
+2656716,dsDNA,DNA,Podo,Duplodnaviria;Heunggongvirae,Heunggongvirae,Uroviricota,Caudoviricetes,Caudovirales,Podoviridae,NA,Podoviridae sp. ctviO18,root;unclassified Podoviridae,NA
+2686224,dsDNA,DNA,Sipho,Duplodnaviria;Heunggongvirae,Heunggongvirae,Uroviricota,Caudoviricetes,Caudovirales,Siphoviridae,Pahexavirus,Cutibacterium phage P108C,root;unclassified Pahexavirus,NA
+2687248,dsRNA,RNA,Toti,Riboviria,Orthornavirae,Duplornaviricota,Chrymotiviricetes,Ghabrivirales,Totiviridae,NA,Cronartium ribicola totivirus 2,root;unclassified Totiviridae,NA
+2689326,dsRNA,RNA,Partiti,Riboviria,Orthornavirae,Pisuviricota,Duplopiviricetes,Durnavirales,Partitiviridae,NA,Atrato Partiti-like virus 1,root;unclassified Partitiviridae,NA
+2695360,ssRNA,RNA,NA,Riboviria,NA,RNA,NA,NA,NA,NA,Erysiphe necator associated ssRNA virus 2,root;unclassified ssRNA viruses;unclassified Riboviria,NA
+2703495,NA,RNA,NA,Riboviria,NA,NA,NA,NA,NA,NA,Barley aphid RNA virus 6,root;unclassified Riboviria,NA
+2719847,dsRNA,RNA,Toti,Riboviria,Orthornavirae,Duplornaviricota,Chrymotiviricetes,Ghabrivirales,Totiviridae,Totivirus,Erysiphales associated totivirus 18,root;unclassified Totivirus,NA
+2719853,dsRNA,RNA,Toti,Riboviria,Orthornavirae,Duplornaviricota,Chrymotiviricetes,Ghabrivirales,Totiviridae,Totivirus,Erysiphales associated totivirus 23,root;unclassified Totivirus,NA
+2719858,dsRNA,RNA,Toti,Riboviria,Orthornavirae,Duplornaviricota,Chrymotiviricetes,Ghabrivirales,Totiviridae,Totivirus,Erysiphales associated totivirus 6,root;unclassified Totivirus,NA
+2723911,dsDNA,DNA,Podo,Duplodnaviria;Heunggongvirae,Heunggongvirae,Uroviricota,Caudoviricetes,Caudovirales,Podoviridae,NA,Xanthomonas phage PPDBI,root;unclassified Podoviridae,NA
+2724325,dsDNA,DNA,Myo,Duplodnaviria;Heunggongvirae,Heunggongvirae,Uroviricota,Caudoviricetes,Caudovirales,Myoviridae,Schizotequatrovirus,Vibrio phage V05,root;unclassified Schizotequatrovirus,NA
+2724326,dsDNA,DNA,Myo,Duplodnaviria;Heunggongvirae,Heunggongvirae,Uroviricota,Caudoviricetes,Caudovirales,Myoviridae,Schizotequatrovirus,Vibrio phage V07,root;unclassified Schizotequatrovirus,NA
+2727863,dsRNA,RNA,Toti,Riboviria,Orthornavirae,Duplornaviricota,Chrymotiviricetes,Ghabrivirales,Totiviridae,NA,Malassezia restricta virus MrV40L,root;unclassified Totiviridae,NA
+2741660,ssRNA(+),RNA,Bromo,Riboviria,Orthornavirae,Kitrinoviricota,Alsuviricetes,Martellivirales,Bromoviridae,Ilarvirus,Macrophomina phaseolina ilar-like virus,root;unclassified Ilarvirus,NA
+2749186,dsDNA,DNA,Sipho,Duplodnaviria;Heunggongvirae,Heunggongvirae,Uroviricota,Caudoviricetes,Caudovirales,Siphoviridae,Pahexavirus,Propionibacterium phage phiPA50S,root;unclassified Pahexavirus,NA
+2755408,NA,RNA,NA,Riboviria,NA,NA,NA,NA,NA,NA,Rhizoctonia solani ambivirus 1,root;unclassified Riboviria,NA
+2755409,NA,RNA,NA,Riboviria,NA,NA,NA,NA,NA,NA,Rhizoctonia solani ambivirus 2,root;unclassified Riboviria,NA
+2759393,dsDNA,DNA,Sipho,Duplodnaviria;Heunggongvirae,Heunggongvirae,Uroviricota,Caudoviricetes,Caudovirales,Siphoviridae,NA,Gordonia phage Clown,root;unclassified Siphoviridae,NA
+2759731,dsDNA,DNA,Myo,Duplodnaviria;Heunggongvirae,Heunggongvirae,Uroviricota,Caudoviricetes,Caudovirales,Myoviridae,NA,Ralstonia phage Hyacinthe,root;unclassified Myoviridae,NA
+2762819,dsDNA,DNA,Myo,Duplodnaviria;Heunggongvirae,Heunggongvirae,Uroviricota,Caudoviricetes,Caudovirales,Myoviridae,Iapetusvirus,Klebsiella phage vB_KvM-Eowyn,root;unclassified Iapetusvirus,NA
+2766745,dsRNA,RNA,Toti,Riboviria,Orthornavirae,Duplornaviricota,Chrymotiviricetes,Ghabrivirales,Totiviridae,NA,Malassezia sympodialis mycovirus,root;unclassified Totiviridae,NA
+2772289,NA,RNA,NA,Riboviria,NA,NA,NA,NA,NA,NA,Tulasnella ambivirus 1,root;unclassified Riboviria,NA
+2772293,NA,RNA,NA,Riboviria,NA,NA,NA,NA,NA,NA,Tulasnella ambivirus 5,root;unclassified Riboviria,NA
+2796502,dsDNA,DNA,Herelle,Duplodnaviria;Heunggongvirae,Heunggongvirae,Uroviricota,Caudoviricetes,Caudovirales,Herelleviridae,Bequatrovirus,Bacillus phage Anthos,root;unclassified Bequatrovirus,NA
+2796573,dsRNA,RNA,Partiti,Riboviria,Orthornavirae,Pisuviricota,Duplopiviricetes,Durnavirales,Partitiviridae,NA,Soybean thrips partiti-like virus 11,root;unclassified Partitiviridae,NA
+2800932,NA,RNA,NA,Riboviria,NA,NA,NA,NA,NA,NA,Netjeret virus,root;unclassified Riboviria,NA
+31647,ssRNA(+),RNA,Flavi,Riboviria,Orthornavirae,Kitrinoviricota,Flasuviricetes,Amarillovirales,Flaviviridae,Hepacivirus,Hepacivirus C,root;Hepatitis C virus subtype 1b,NA
+325676,ssRNA(+),RNA,Mesoni,Riboviria,Orthornavirae,Pisuviricota,Pisoniviricetes,Nidovirales,Mesoniviridae,Alphamesonivirus,Alphamesonivirus 1,root;Nam Dinh virus,NA
+340016,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,uncultured virus,root;environmental samples,NA
+38018,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,Bacteriophage sp.,root;unclassified bacterial viruses,NA
+406877,ssDNA(-),DNA,Anello,Varidnaviria,NA,DNA,NA,NA,Anelloviridae,NA,Small anellovirus,root;unclassified Anelloviridae;Small anellovirus KR-BD;Small anellovirus KR-BD-0224,NA
+406878,ssDNA(-),DNA,Anello,Varidnaviria,NA,DNA,NA,NA,Anelloviridae,NA,Small anellovirus,root;unclassified Anelloviridae;Small anellovirus KR-BD;Small anellovirus KR-BD-0226,NA
+415370,ssDNA(-),DNA,Anello,Varidnaviria,NA,DNA,NA,NA,Anelloviridae,NA,Small anellovirus,root;unclassified Anelloviridae;Small anellovirus KR-HC-0023,NA
+432261,ssDNA(-),DNA,Anello,Varidnaviria,NA,DNA,NA,NA,Anelloviridae,NA,Torque teno midi virus,root;unclassified Anelloviridae,NA
+43763,ssRNA(+),RNA,Noda,Riboviria,Orthornavirae,Kitrinoviricota,Magsaviricetes,Nodamuvirales,Nodaviridae,Betanodavirus,Redspotted grouper nervous necrosis virus,root,NA
+45617,ssRNA-RT,RNA,Retro,Human endogenous retroviruses;Riboviria,Pararnavirae,Artverviricota,Revtraviricetes,Ortervirales,Retroviridae,NA,Human endogenous retrovirus K,root;unclassified Retroviridae,NA
+465914,ssDNA,DNA,Parvo,Monodnaviria,Shotokuvirae,Cossaviricota,Quintoviricetes,Piccovirales,Parvoviridae,Brevihamaparvovirus,Dipteran brevihamaparvovirus 1,root;Aedes albopictus densovirus;Culex pipiens pallens densovirus,NA
+486279,ssDNA(-),DNA,Anello,Varidnaviria,NA,DNA,NA,NA,Anelloviridae,NA,Torque teno virus,root;TT virus group 5;unclassified Anelloviridae;Torque teno virus Human/China/CT39F/2001,NA
+54290,ssRNA(+),RNA,Flavi,Riboviria,Orthornavirae,Kitrinoviricota,Flasuviricetes,Amarillovirales,Flaviviridae,Pegivirus,Pegivirus C,root;GB virus C,NA
+573591,dsDNA,DNA,Sipho,Duplodnaviria;Heunggongvirae,Heunggongvirae,Uroviricota,Caudoviricetes,Caudovirales,Siphoviridae,NA,Stenotrophomonas phage S1,root;unclassified Siphoviridae,NA
+61673,ssRNA-RT,RNA,Retro,Riboviria,Pararnavirae,Artverviricota,Revtraviricetes,Ortervirales,Retroviridae,Gammaretrovirus,Porcine type-C oncovirus,root;Porcine endogenous retrovirus,NA
+62805,ssRNA-RT,RNA,Retro,Human endogenous retroviruses;Riboviria,Pararnavirae,Artverviricota,Revtraviricetes,Ortervirales,Retroviridae,NA,Human endogenous retrovirus W,root;unclassified Retroviridae;Multiple sclerosis associated retrovirus,NA
+687342,ssDNA(-),DNA,Anello,Varidnaviria,NA,DNA,NA,NA,Anelloviridae,Alphatorquevirus,Torque teno virus 3,root,NA
+687350,ssDNA(-),DNA,Anello,Varidnaviria,NA,DNA,NA,NA,Anelloviridae,Alphatorquevirus,Torque teno virus 11,root,NA
+687351,ssDNA(-),DNA,Anello,Varidnaviria,NA,DNA,NA,NA,Anelloviridae,Alphatorquevirus,Torque teno virus 12,root,NA
+687363,ssDNA(-),DNA,Anello,Varidnaviria,NA,DNA,NA,NA,Anelloviridae,Alphatorquevirus,Torque teno virus 24,root,NA
+687368,ssDNA(-),DNA,Anello,Varidnaviria,NA,DNA,NA,NA,Anelloviridae,Alphatorquevirus,Torque teno virus 29,root,NA
+687379,ssDNA(-),DNA,Anello,Varidnaviria,NA,DNA,NA,NA,Anelloviridae,Gammatorquevirus,Torque teno midi virus 1,root,NA
+68887,ssDNA(-),DNA,Anello,Varidnaviria,NA,DNA,NA,NA,Anelloviridae,NA,Torque teno virus,root;unclassified Anelloviridae,NA
+795380,ssRNA(+),RNA,Noda,Riboviria,Orthornavirae,Kitrinoviricota,Magsaviricetes,Nodamuvirales,Nodaviridae,NA,Bat guano associated nodavirus GF-4n,root;unclassified Nodaviridae,NA
+89382,ssRNA-RT,RNA,Retro,Human endogenous retroviruses;Riboviria,Pararnavirae,Artverviricota,Revtraviricetes,Ortervirales,Retroviridae,NA,Human endogenous retrovirus W,root;unclassified Retroviridae;Multiple sclerosis associated retrovirus element,NA
+93678,ssDNA(-),DNA,Anello,Varidnaviria,NA,DNA,NA,NA,Anelloviridae,Betatorquevirus,TTV-like mini virus,root;unclassified Betatorquevirus,NA
+945962,ssDNA,DNA,Parvo,Monodnaviria,Shotokuvirae,Cossaviricota,Quintoviricetes,Piccovirales,Parvoviridae,Brevidensovirus,Mosquito densovirus BR/07,root;unclassified Brevidensovirus,NA
