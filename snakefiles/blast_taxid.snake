@@ -1,0 +1,281 @@
+rule Blast_contigs_on_nr:
+    input:
+        assembly=rules.Merge_Mega_cap_contigs.output.final_assembly
+    output:
+        blast_raw="Blast_nr_results/Contigs_{RUN}.blast_nr_results_raw.tsv"
+    params:
+        blastDBpath=base_nr,
+        basetaxoDBpath=base_taxo
+    threads: threads_Blast_contigs_on_nr
+    shell:
+        """
+        diamond blastx -b 10.0 -c 1 -p {threads}  -d {params.blastDBpath} --more-sensitive --query {input.assembly} --max-hsps 1 --max-target-seqs 5  --taxonmap {params.basetaxoDBpath} -f 6 qseqid sseqid qlen slen length qstart qend sstart send qcovhsp pident evalue bitscore staxids --out {output.blast_raw};
+        """
+
+rule Remove_poor_qual_Blast_unmapped_on_nr_vir:
+    input:
+        blast_raw=rules.Blast_contigs_on_nr.output.blast_raw
+    output:
+        blast_tsv="Blast_nr_results/Contigs_{RUN}.blast_nr_results.tsv"
+    threads: 5
+    shell:
+        """
+        awk '$3 >= 150 {{ print }}' {input.blast_raw} | awk '$5 >= 75 {{ print }}' > {output.blast_tsv}
+        """
+
+# Flo : "Blast_nr_vir_results/Contigs_{RUN}.blast_nr_vir_results.tsv", I don't find which rules create this file.
+rule log_diamond:
+    input:
+        blastcontigs_nrvir="Blast_nr_vir_results/Contigs_{RUN}.blast_nr_vir_results.tsv",
+        blastcontigs_nr=rules.Remove_poor_qual_Blast_unmapped_on_nr_vir.output.blast_tsv
+    output:
+        log="logs/logs_diamond/{smp}_{RUN}_diamond.txt"
+    shell:
+        """
+        awk '{{print $1}}' {input.blastcontigs_nrvir} | sort -u | wc -l >> {output.log}
+        awk '{{print $1}}' {input.blastcontigs_nr} | sort -u | wc -l >> {output.log}
+        """
+
+rule Join_seq_acc_taxo_nr:
+    input:
+        contigs=rules.Remove_poor_qual_Blast_unmapped_on_nr_vir.output.blast_tsv
+    output:
+        taxo="Taxonomy/Seq_hits_info_{RUN}.csv"
+    shell:
+        """
+        cat {input.contigs} | awk -F'\t' '$14!=""' | sort -u -k1,1 | sed "s/;/\t/g" | awk '{{print $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$(NF)}}'| sed "s/ /\t/g" |sed -e 's/\t/,/g'| sed -e '1i\qseqid,sseqid,qlen,slen,length,qstart,qend,sstart,send,qcovhsp,pident,evalue,bitscore,tax_id' > {output.taxo}
+        """
+
+rule get_nr_lineage_from_taxids:
+    input:
+        seq=rules.Join_seq_acc_taxo_nr.output.taxo,
+        blst=rules.Remove_poor_qual_Blast_unmapped_on_nr_vir.output.blast_tsv
+    output:
+        lin="Taxonomy/lineage_{RUN}.csv",
+        lin5="Taxonomy/lineage_5_hit_{RUN}.csv",
+        lin5c="Taxonomy/lineage_5_hit_{RUN}_cor.csv",
+        blst="Taxonomy/Blast_5_hit_{RUN}.csv",
+        sort_seq_ids="tmp/sort_seq_ids_{RUN}.csv"
+
+    params:
+        getr=scriptdir + "get_rank.py",
+        com=scriptdir + "complet_taxo_dic_v3.py",
+        pickle_shi=scriptdir + "correc_taxo.pickle",
+        pickle_cust=scriptdir + "custom_taxo.pickle"
+    shell:
+        """
+        sort -u -k1,1  {input.seq} |sed -e 's/;/,/g'| awk -F',' '{{print $NF}}'| sort -u | sed '/^$/d' | paste -s -d,| python {params.getr} {output.lin}
+        cat {input.blst} | awk  '$14!=""' |sed "s/;/\t/g" | awk '{{print $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$(NF)}}'| sed "s/ /,/g" |sed -e 's/\t/,/g' |awk -F',' '{{print $NF}}'| sort -u | sed '/^$/d' | paste -s -d,  | python {params.getr} {output.lin5}
+        cat {input.blst} | awk  '$14!=""' |sed "s/;/\t/g" | awk '{{print $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$(NF)}}'| sed "s/ /,/g" |sed -e 's/\t/,/g'| sed -e '1i\qseqid,sseqid,qlen,slen,length,qstart,qend,sstart,send,qcovhsp,pident,evalue,bitscore,tax_id' > {output.blst}
+        python {params.com} {params.pickle_shi} {params.pickle_cust} {output.lin5} {output.lin5c}
+        awk -F "," '{{print $NF, $1}}' {input.seq} | sort -n -k1 > {output.sort_seq_ids}
+
+        """
+
+
+##count_contigs_list=expand("CountsMapping/{smp}_counts_contigs_"+RUN+".mat",smp=SAMPLES),
+##count_unmapped_list=expand("CountsMapping/{smp}_counts_unmapped_"+RUN+".mat",smp=SAMPLES),
+##count_list=count_contigs_list+count_unmapped_list
+
+rule Build_array_coverage_nr:
+    input:
+        lin=rules.get_nr_lineage_from_taxids.output.lin
+    output:
+        by_seq="Coverage/count_table_contigs_{RUN}.csv"
+    params:
+        script=scriptdir + "build_count_table.py",
+        countdir="CountsMapping/"
+    shell:
+        """
+        python {params.script} {params.countdir} {output.by_seq}
+        """
+
+# Flo : no intput in script ? Maybe problems when modify directory output
+rule Count_coverage_raw_nr:
+    input:
+        count_table=rules.Build_array_coverage_nr.output.by_seq
+    output:
+        by_seq="Coverage/count_contigs_raw_{RUN}.csv"
+    params:
+        script=scriptdir + "build_count_table.py",
+        countdir="CountsMapping_raw/"
+    shell:
+        """
+        python {params.script} {params.countdir} {output.by_seq}
+        """
+
+rule complete_taxo:
+    input:
+        blast=rules.get_nr_lineage_from_taxids.output.blst,
+        lin=rules.get_nr_lineage_from_taxids.output.lin,
+        lin5c=rules.get_nr_lineage_from_taxids.output.lin5c
+    output:
+        lineage1="Coverage/lineage_{RUN}_tmp.csv",
+        lineage="Coverage/lineage_cor_{RUN}.csv"
+    params:
+        script_mult=scriptdir + "multihit.py",
+        script_compt=scriptdir + "complet_taxo_dic_v3.py",
+        pickle_shi=scriptdir + "correc_taxo.pickle",
+        pickle_cust=scriptdir + "custom_taxo.pickle"
+    shell:
+        """
+        python {params.script_mult} {input.blast} {input.lin5c} {input.lin} tmp/lin.tmp
+        cat tmp/lin.tmp |sed -e 's/,/;/g'|sed -e 's/\\t/,/g' > {output.lineage1}
+        python {params.script_compt} {params.pickle_shi} {params.pickle_cust} {output.lineage1} {output.lineage}
+        """
+
+rule extract_viral_ids:
+    input:
+        lineage=rules.complete_taxo.output.lineage,
+        sort_seq_ids=rules.get_nr_lineage_from_taxids.output.sort_seq_ids
+    output:
+        taxo="Taxonomy/viral_contigs_ids_{RUN}.txt"
+    shell:
+        """
+        for i in `awk -F',' '{{print $1}}' {input.lineage}|  sort -n ` ; do grep $i {input.sort_seq_ids} | awk '{{print $2}}'; done > {output.taxo}
+        """
+
+
+rule extract_viral_contigs:
+    input:
+        contig=rules.Merge_Mega_cap_contigs.output.final_assembly,
+        viral_cont_IDS=rules.extract_viral_ids.output.taxo
+    output:
+        viral_cont="Assembly_results/{RUN}_viral_contigs.fa"
+    shell:
+        """
+        perl -ne 'if(/^>(\S+)/){{$c=$i{{$1}}}}$c?print:chomp;$i{{$_}}=1 if @ARGV' {input.viral_cont_IDS} {input.contig} > {output.viral_cont};
+        """
+
+rule Blast_contigs_on_nt:
+    input:
+        contig=rules.Merge_Mega_cap_contigs.output.final_assembly,
+        viral_cont=rules.extract_viral_contigs.output.viral_cont
+    output:
+        blast="Blast_nt_results/Contigs_{RUN}.blast_nt_results.tsv"
+    params:
+        blastDBpath=base_nt
+    threads: threads_Blast_contigs_on_nt
+    shell:
+        """
+        blastn -task blastn -db {params.blastDBpath} -query {input.viral_cont} -num_threads {threads}  -evalue 0.001  -max_hsps 1 -max_target_seqs 10 -outfmt "6 qseqid sseqid qlen slen length qstart qend sstart send qcovhsp pident evalue bitscore"  -out {output.blast}
+        """
+
+rule extract_seq_acc:
+    input:
+        blast_result=rules.Blast_contigs_on_nt.output.blast
+    output:
+        temp="tmp/Contigs_{RUN}.blast_nt_results.tsv"
+    shell:
+        """
+        awk -F'|' '{{print $1,$(NF-1)}}' {input.blast_result} | awk '{{$2="";print}}'| awk  '{{$2=substr($2,1, length($2)-2);print}}'| sort -u -k1,1 | sed 's/ /\t/g' |tee {output.temp} | awk '{{print $2}}' >  "tmp/sseq_ids.txt";
+        """
+
+rule extract_tax_ids:
+    input:
+        acc_ids=rules.extract_seq_acc.output.temp
+    output:
+        tax_id="tmp/tax_ids_{RUN}.tsv"
+    params:
+        basetaxoDBpath=base_taxo_nt
+    shell:
+        """
+        for i in `cat {input.acc_ids}` ; do LC_ALL=C  look $i {params.basetaxoDBpath} | awk '{{print $1,$3}}' >> {output.tax_id}; done || true
+        """
+
+rule join_blst_tax:
+    input:
+        tax_ids=rules.extract_tax_ids.output.tax_id,
+        blst=rules.Blast_contigs_on_nt.output.blast,
+        blst_ids=rules.extract_seq_acc.output.temp
+    output:
+        blst="Taxonomy_nt/Seq_hit_nt_{RUN}.csv"
+    shell:
+        """
+        awk 'NR==FNR{{a[$1]=$2;next}} ($2) in a{{print $0" "a[$2]}}'  {input.tax_ids}  {input.blst_ids} |awk '{{print $1 , $3}}'| sed 's/ /\t/g' > tmp/sseq_ids_tax_id.tsv
+        cat {input.blst} | sort -u -k1,1| sed 's/ /\t/g' > tmp/blast.tsv
+        awk 'NR==FNR{{a[$1]=$2;next}} ($1) in a{{print $0" "a[$1]}}' tmp/sseq_ids_tax_id.tsv  tmp/blast.tsv| sed 's/ /\t/g' | sed 's/\t/,/g' > {output.blst}
+        """
+
+rule get_nt_lineage_from_taxids:
+    input:
+        taxo=rules.join_blst_tax.output.blst
+    output:
+        lin="Taxonomy_nt/lineage_nt_{RUN}.csv",
+        stat="Coverage_nt/stat_by_seq_nt_{RUN}.csv"
+    params:
+        scriptdir + "get_rank.py"
+    shell:
+        """
+        sort -u -k1,1  {input.taxo} |sed -e 's/;/,/g'| awk -F',' '{{print $NF}}'| sort -u | sed '/^$/d' | paste -s -d,| python {params} {output.lin}
+        awk -F ',' 'NR==FNR{{a[$1]=$0;next}} ($NF) in a{{print $0","a[$NF]}}' {output.lin} {input.taxo} | sed -e '1i\qseqid,sseqid,qlen,slen,length,qstart,qend,sstart,send,qcovhsp,pident,evalue,bitscore,tax_id' > {output.stat}
+        """
+
+rule intergreted_vir_check:
+    input:
+        stat_nt=rules.get_nt_lineage_from_taxids.output.stat,
+        stat=rules.join_blst_tax.output.blst,
+        lineage=rules.complete_taxo.output.lineage
+    output:
+        tmp="tmp/interg_virus_{RUN}.csv"
+    shell:
+        """
+        awk -F "," ' {{if ($17!="Viruses" && $17!="NA" && $10>25) print $0}}' {input.stat_nt} |sed -e 's/,/\t/g' > {output.tmp}
+        """
+
+checkpoint split_viral_tax:
+    input:
+        taxo=rules.get_nr_lineage_from_taxids.output.lin5c
+    output:
+        directory('split_vir')
+    shell:
+        """
+        mkdir -p {output}
+        split -l 1000 {input} {output}/split.
+        """
+
+rule get_host:
+    input:
+        acc_ids="split_vir/split.{i}",
+        by_seq=rules.Join_seq_acc_taxo_nr.output.taxo
+    output:
+        split_host_tax="split_vir/{RUN}_host_tax.{i}.csv"
+    params:
+        script=scriptdir + "get_host.py",
+        host_db=scriptdir + "virushostdb1_21.csv"
+    shell:
+        """
+        python {params.script} {input.acc_ids} {input.by_seq} {params.host_db} {output.split_host_tax}
+        """
+
+
+#Flo : test rules.XX in aggregate function ?
+def aggregate_input_host(wildcards):
+    checkpoint_output = checkpoints.split_viral_tax.get(**wildcards).output[0]
+    return expand(f"split_vir/{RUN}_host_tax.{i}.csv",
+        i=glob_wildcards(os.path.join(checkpoint_output,'split.{i}')).i)
+
+
+rule join_host_tax:
+    input:
+        aggregate_input_host
+    output:
+        host_lineage="results/hosts_lineage_{RUN}.csv"
+    shell:
+        """
+        echo "tax_id,hosts_taxon,hosts_gb,hosts_tax_id,hosts_superkingdom,hosts_kingdom,hosts_phylum,hosts_class,hosts_order,hosts_family,hosts_subfamily,hosts_genus,hosts_species">{output.host_lineage}
+        cat {input}  >> {output.host_lineage}
+        """
+
+rule merge_vir_check:
+    input:
+        tmp = rules.intergreted_vir_check.output.tmp,
+        stat = rules.join_blst_tax.output.blst,
+        lineage = rules.complete_taxo.output.lineage
+    output:
+        vir_ch="intergreted_vir_check_{RUN}.csv"
+
+    shell:
+        """
+        awk -F',' '{{print $1}}' {input.lineage}| grep -wf - {input.stat} | awk -F"[\t, ]" 'FNR==NR&&NR!=1{{a[$1]="YES"}}  FNR!=NR{{OFS=",";if(FNR!=1){{$(NF+1)=a[$1]}};print}}'  {input.tmp} - |awk -F',' '!$NF {{OFS=","; $NF="NO" }}1' >  {output.vir_ch}
+        """

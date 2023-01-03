@@ -1,0 +1,104 @@
+rule Map_On_Assembly:
+    input:
+        pairs_R1 = rules.Extract_Unmapped_bact_Reads.output.R1,
+        pairs_R2 = rules.Extract_Unmapped_bact_Reads.output.R2,
+        WI = rules.Extract_Unmapped_bact_Reads.output.WI,
+        CONTIGS = rules.Merge_Mega_cap_contigs.output.final_assembly,
+        INDEX = rules.Index_Assembly.output.index
+    output:
+        raw="MappingOnAssembly/raw_{smp}_on_{RUN}.bam",
+        raw_wi="MappingOnAssembly/raw_wi_{smp}_on_{RUN}.bam",
+        rmdup="MappingOnAssembly/rmdup_{smp}_on_{RUN}.bam",
+        rmdup_wi="MappingOnAssembly/rmdup_wi_{smp}_on_{RUN}.bam",
+        merged="MappingOnAssembly/{smp}_on_{RUN}.bam",
+        mergedraw="MappingOnAssembly/{smp}_raw_on_{RUN}.bam",
+        logs_pair="logs/logsDuplicates/{smp}_duplicates_pairs_{RUN}.txt",
+        logs_wi="logs/logsDuplicates/{smp}_duplicates_wi_{RUN}.txt",
+        logs="logs/{smp}_{RUN}_stats_mapping_assembly.txt"
+    threads: threads_Map_On_Assembly
+    shell:
+        """
+        if [ -s {input.pairs_R1} ]
+        then
+            bwa mem -t {threads} {input.CONTIGS} {input.pairs_R1} {input.pairs_R2}| samtools fixmate -@ {threads} -m - -| samtools sort -O BAM -|  tee {output.raw} | samtools markdup -@ {threads} -r - -f {output.logs_pair} {output.rmdup}
+        else
+            touch {output.raw} {output.rmdup}
+        fi
+        if [ -s {input.WI} ]
+        then
+            bwa mem -t {threads} {input.CONTIGS} {input.WI}| samtools fixmate -@ {threads} -m - -| samtools sort -O BAM |  tee {output.raw_wi} | samtools markdup -@ {threads} -r - -f {output.logs_wi}  {output.rmdup_wi}
+        else
+            touch {output.raw_wi} {output.rmdup_wi}
+        fi
+        samtools merge -@ {threads} {output.merged} {output.rmdup} {output.rmdup_wi}
+        samtools merge -@ {threads} {output.mergedraw} {output.raw} {output.raw_wi}
+        samtools flagstat {output.merged} > {output.logs}
+        """
+
+rule get_insert_size_metric:
+    input:
+        bam = rules.Map_On_Assembly.output.raw
+    output:
+        metrics = "logs/insert_size/{smp}_insert_size_metrics_{RUN}.txt",
+        histo = "logs/insert_size/{smp}_insert_size_histo_{RUN}.pdf"
+    shell:
+        """
+        picard  CollectInsertSizeMetrics -M 0.0 -I {input.bam}  -O {output.metrics} -H {output.histo}
+        """
+
+rule log_Quantify_contigs_coverage_raw:
+    input:
+        mapped=rules.Quantify_contigs_coverage_raw.output.mapped,
+        Unmapped=rules.Quantify_contigs_coverage_raw.output.Unmapped,
+        viral_cont=rules.extract_viral_ids.output.taxo
+    output:
+        coverage="logs/logs_coverage_raw/{smp}_coverage_{RUN}.txt"
+    shell:
+        """
+        xargs -I @ grep -w -m 1 @ {input.mapped} | < {input.viral_cont}| awk '{{ sum+=$2 }} END {{print "Mapped:" sum }}' - >> {output.coverage}
+        xargs -I @ grep -w -m 1 @ {input.mapped} | < {input.viral_cont} | wc -l >> {output.coverage}
+        xargs -I @ grep -w -m 1 @ {input.Unmapped} | < {input.viral_cont}| awk '{{ sum+=$2 }} END {{print "Mapped:" sum }}' - >> {output.coverage}
+        xargs -I @ grep -w -m 1 @ {input.Unmapped} | < {input.viral_cont} | wc -l >> {output.coverage}
+        """
+
+rule Quantify_contigs_coverage_raw:
+    input:
+        bam = rules.Map_On_Assembly.output.mergedraw
+    output:
+        mapped = "CountsMapping_raw/{smp}_raw_counts_contigs_{RUN}.mat",
+        Unmapped = "CountsMapping_raw/{smp}_raw_counts_unmapped_{RUN}.mat"
+    shell:
+        """
+        echo "qseqid "$(basename {input.bam} _raw_on_{RUN}.bam)> {output.mapped}
+        samtools view -F 2308 {input.bam}| cut -f 3 | sort | uniq -c - | awk -F' ' '{{print $NF,$(NF-1)}}' >> {output.mapped};
+        echo "qseqid "$(basename {input.bam} _raw_on_{RUN}.bam)> {output.Unmapped}
+        samtools view -f 0x4 {input.bam}| cut -f 1 | sort | uniq -c - | awk -F' ' '{{print $NF,$(NF-1)}}' >> {output.Unmapped};
+        """
+
+rule Quantify_contigs_coverage_rmdup:
+    input:
+        bam = rules.Map_On_Assembly.output.merged
+    output:
+        mapped= "CountsMapping/{smp}_counts_contigs_{RUN}.mat",
+        Unmapped="CountsMapping/{smp}_counts_unmapped_{RUN}.mat"
+    shell:
+        """
+        echo "qseqid "$(basename {input} _on_{RUN}.bam)> {output.mapped}
+        samtools view -F 2308 {input}| cut -f 3 | sort | uniq -c - | awk -F' ' '{{print $NF,$(NF-1)}}' >> {output.mapped};
+        echo "qseqid "$(basename {input} _on_{RUN}.bam)> {output.Unmapped}
+        samtools view -f 0x4 {input}| cut -f 1 | sort | uniq -c - | awk -F' ' '{{print $NF,$(NF-1)}}' >> {output.Unmapped};
+        """
+
+rule log_Quantify_contigs_coverage:
+    input:
+        mapped = rules.Quantify_contigs_coverage_rmdup.output.mapped,
+        Unmapped = rules.Quantify_contigs_coverage_rmdup.output.Unmapped
+    output:
+        log = "logs/logs_coverage/{smp}_coverage_{RUN}.txt"
+    shell:
+        """
+        awk '{{ sum+=$2 }} END {{print "Mapped:" sum }}' {input.mapped} >> {output.log}
+        wc -l {input.mapped}  >> {output.log}
+        awk '{{ sum+=$2 }}END {{print "UnMapped:" sum }}' {input.Unmapped} >> {output.log}
+        wc -l {input.Unmapped}  >> {output.log}
+        """
