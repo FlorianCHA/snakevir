@@ -58,37 +58,21 @@ if NBREADS != 2*NBSAMPLES:
 
 rule final:
     input:
-        expand("cutadaptfiles/{readfile}.trimmed.fastq", readfile=READS), # To remove ?
         expand("logs/logs_contaminent/Stats_contaminent_{smp}.txt", smp=SAMPLES),
-        "logs/logsAssembly/"+RUN+"_assembly_stats.txt",
-        "Assembly_results/"+RUN+"_contigs_assembly_results.fa.bwt",
-        expand("logs/insert_size/{smp}_insert_size_metrics_"+RUN+".txt", smp=SAMPLES),
-        expand("logs/{smp}_"+RUN+"_stats_mapping_assembly.txt", smp=SAMPLES),
-        expand("CountsMapping_raw/{smp}_raw_counts_contigs_"+RUN+".mat", smp=SAMPLES),
-        expand("CountsMapping/{smp}_counts_contigs_"+RUN+".mat", smp=SAMPLES),
-        expand("logs/logs_coverage/{smp}_coverage_"+RUN+".txt", smp=SAMPLES),
-        "Taxonomy/lineage_"+RUN+".csv",
-        "Coverage/count_table_contigs_"+RUN+".csv",
-        "Coverage/count_contigs_raw_"+RUN+".csv",
-        "Coverage/lineage_cor_"+RUN+".csv",
-        expand("logs/logs_coverage_raw/{smp}_coverage_"+RUN+".txt", smp=SAMPLES),
-        "Assembly_results/"+RUN+"_viral_contigs.fa",
-        "Taxonomy_nt/Seq_hit_nt_"+RUN+".csv",
-        "Blast_nt_results/Contigs_"+RUN+".blast_nt_results.tsv",
-        "Taxonomy_nt/lineage_nt_"+RUN+".csv",
-        "intergreted_vir_check_"+RUN+".csv",
+        f"logs/logsAssembly/{RUN}_assembly_stats.txt",
+        expand(f"logs/insert_size/{{smp}}_insert_size_metrics_{RUN}.txt", smp=SAMPLES),
+        expand(f"logs/logs_coverage/{{smp}}_coverage_{RUN}.txt", smp=SAMPLES),
+        f"Coverage/count_contigs_raw_{RUN}.csv",
+        expand(f"logs/logs_coverage_raw/{{smp}}_coverage_{RUN}.txt", smp=SAMPLES),
+        f"intergreted_vir_check_{RUN}.csv",
         f"results/hosts_lineage_{RUN}.csv",
-        "logs/stats_run_"+RUN+".csv",
-        # dynamic(expand("depthvir/{num}/{smp}_on_"+RUN+".cov", smp=SAMPLES, num="{num}")),
-        # dynamic("depthvir/coverage_{num}.cov"),
-        # dynamic("depthvir/stats_coverage_{num}.cov"),
-        # dynamic("depthvir/range_10x_coverage_{num}.cov"),
+        f"logs/stats_run_{RUN}.csv",
         "results/range_10x_coverage.cov"
 
 ############################### Read processing #################################################
 include: f"snakefiles/read_processing.snake"
 
-################################# Assembly ######################################################
+############################### Read processing #################################################
 include: f"snakefiles/assembly.snake"
 
 ############################ blast information & extract viral contig ###########################
@@ -97,7 +81,7 @@ include: f"snakefiles/map_on_assembly.snake"
 ############################ blast information & extract viral contig ###########################
 include: f"snakefiles/blast_taxid.snake"
 
-############################ Calculate depth for count table ###########################
+############################ Calculate depth for count table ####################################
 include: f"snakefiles/depth.snake"
 
 
