@@ -1,9 +1,9 @@
 # YAML file format
 # Some options for the seekviralreads snakefile pipeline
 # A name for the run:
-run: "HN00147527-HN00170621"
+run: "TEST"
 # path to fastq files. All samples fastq are in this directory and formatted as {sample}_1.fastq and {sample}_2.fastq
-fastq: "/home/charriatf/scratch/Zoo_RUN_HN00147527_HN00170621/rawdata/"
+fastq: "/home/charriatf/scratch/programmation/data_test/"
 # Indicate how the reads are named (ex:_R1 , _R2 or _001_R1 , _001_R2)
 ext_R1: "_1"
 ext_R2: "_2"

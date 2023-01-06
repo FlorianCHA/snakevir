@@ -10,7 +10,7 @@ rule depth:
 
 checkpoint split_contig:
     input:
-        blast = rules.extract_viral_ids.output.taxo
+        blast = f"Taxonomy/viral_contigs_ids_{RUN}.txt" # Here RUN is variable because we haven't RUN in ouput
     output:
         directory = directory('split_cont')
     shell:
@@ -32,7 +32,7 @@ rule Depth_vir:
 
 rule merge_depth:
     input:
-        file = expand(rules.Depth_vir.output.split_cov, smp=SAMPLES),
+        file = expand("split_cont/{{i}}.{smp}.cov", smp=SAMPLES),
         dir= rules.split_contig.output.directory
     output:
         coverage = "split_cont/coverage_{i}.cov"
