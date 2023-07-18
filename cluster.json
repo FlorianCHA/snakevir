@@ -4,7 +4,8 @@
         "queue": "agap_normal",
         "nodes": "1",
         "cpu_task" : "1",
-        "log" : "cluster_log/{rule}_%j.out"
+        "log" : "cluster_log/{rule}_%j.out",
+        "mem": "10G"
     },
     "Quality_trimming": {
         "job-name": "{rule}",
@@ -55,11 +56,12 @@
         "nodes": "1",
         "cpu_task" : "4",
     },
-    "Blast_contigs_on_nt": {
+    "Blast_contigs_on_nr": {
         "job-name": "{rule}",
         "queue": "agap_bigmem",
         "nodes": "1",
-        "cpu_task" : "8",
+        "cpu_task" : "1",
+        "mem" : "100G"
     },
      "Blast_contigs_on_nt": {
         "job-name": "{rule}",
@@ -67,10 +69,18 @@
         "nodes": "1",
         "cpu_task" : "1",
     },
+     "merge_depth": {
+        "job-name": "{rule}",
+        "queue": "agap_long",
+        "nodes": "1",
+        "cpu_task" : "1",
+        "mem": "75G",
+    },
     "stats_depth": {
         "job-name": "{rule}",
         "queue": "agap_long",
         "nodes": "1",
         "cpu_task" : "4",
+        "mem" : "20G",
     }
 }

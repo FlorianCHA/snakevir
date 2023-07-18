@@ -1,0 +1,97 @@
+rule depth:
+    input:
+        bam =  rules.Map_On_Assembly.output.merged
+    output:
+        depth = "depth/{smp}.{RUN}.cov"
+    shell:
+        """
+        samtools depth -a {input.bam} -o {output.depth}
+        """
+
+checkpoint split_contig:
+    input:
+        blast = f"Taxonomy/viral_contigs_ids_{RUN}.txt" 
+    output:
+        directory = directory(f'{RUN}/split_cont')
+    shell:
+        """
+        mkdir -p {output}
+        split -l 10000 {input.blast} {output.directory}/split.
+        """
+
+rule Depth_vir:
+    input:
+        viral_cont_IDS = "{RUN}/split_cont/split.{i}",
+        depth = rules.depth.output.depth
+    output:
+        split_cov = "{RUN}/split_cont/{i}.{smp}.cov"
+    shell:
+        """
+        for i in `cat {input.viral_cont_IDS}` ; do rg -w $i {input.depth}  ; done > {output.split_cov} || true
+        """
+
+rule merge_depth:
+    input:
+        file = expand("{{RUN}}/split_cont/{{i}}.{smp}.cov", smp=SAMPLES),
+    output:
+        coverage = "{RUN}/split_cont/coverage_{i}.cov"
+    params:
+        split="{i}",
+        script=scriptdir + "merge_cov.py",
+        dir = rules.split_contig.output.directory
+    shell:
+        """
+        python {params.script} {params.dir} {params.split} {output.coverage}
+        """
+
+rule stats_depth:
+    input:
+        coverage = rules.merge_depth.output.coverage
+    output:
+        stat_cov = "{RUN}/split_cont/stats_coverage_{i}.cov"
+    params:
+        script=scriptdir + "stats_coverage.py"
+    shell:
+        """
+        python {params.script} {input.coverage} {output.stat_cov}
+        """
+
+rule range_depth:
+    input:
+        coverage = rules.merge_depth.output.coverage
+    output:
+        cov_10x = "{RUN}/split_cont/range_10x_coverage_{i}.cov"
+    params:
+        script=scriptdir + "count_range_cov.py"
+    shell:
+        """
+        python {params.script} {input.coverage} {output.cov_10x}
+        """
+
+
+def aggregate_input_depth_10x(wildcards):
+    checkpoint_output = checkpoints.split_contig.get(**wildcards).output[0]
+    return expand("{{RUN}}/split_cont/range_10x_coverage_{i}.cov",
+        i=glob_wildcards(os.path.join(checkpoint_output,'split.{i}')).i)
+
+
+def aggregate_input_depth_stats(wildcards):
+    checkpoint_output = checkpoints.split_contig.get(**wildcards).output[0]
+    return expand("{{RUN}}/split_cont/stats_coverage_{i}.cov",
+        i=glob_wildcards(os.path.join(checkpoint_output,'split.{i}')).i)
+
+
+rule results_depth:
+    input:
+        depthstat = aggregate_input_depth_stats,
+        depth10x = aggregate_input_depth_10x
+    output:
+        stats_deph = "{RUN}/results/stats_coverage.cov",
+        range_10x = "{RUN}/results/range_10x_coverage.cov"
+    shell:
+        """
+        echo "contig,min_coverage,max_coverage, mean_coverage,median_coverage" > {output.stats_deph}
+        cat {input.depthstat} >> {output.stats_deph}
+        echo "contig,start,end" > {output.range_10x}
+        cat  {input.depth10x} >> {output.range_10x}
+        """
