@@ -9,7 +9,7 @@ rule Blast_contigs_on_nr:
     threads: threads_Blast_contigs_on_nr
     shell:
         """
-        diamond blastx -b 10.0 -c 1 -p {threads}  -d {params.blastDBpath} --more-sensitive --query {input.assembly} --max-hsps 1 --max-target-seqs 5  --taxonmap {params.basetaxoDBpath} -f 6 qseqid sseqid qlen slen length qstart qend sstart send qcovhsp pident evalue bitscore staxids --out {output.blast_raw};
+        diamond blastx -b 10.0 -c 1 -p {threads}  -d {params.blastDBpath} --more-sensitive --query {input.assembly} --max-hsps 1 --max-target-seqs 5 --taxonmap {params.basetaxoDBpath} -f 6 qseqid sseqid qlen slen length qstart qend sstart send qcovhsp pident evalue bitscore staxids --out {output.blast_raw};
         """
 
 rule Remove_poor_qual_Blast_unmapped_on_nr_vir:
@@ -252,7 +252,7 @@ rule get_host:
 #Flo : test rules.XX in aggregate function ?
 def aggregate_input_host(wildcards):
     checkpoint_output = checkpoints.split_viral_tax.get(**wildcards).output[0]
-    return expand("split_vir/{RUN}_host_tax.{i}.csv",
+    return expand(f"split_vir/{RUN}_host_tax.{{i}}.csv",
         i=glob_wildcards(os.path.join(checkpoint_output,'split.{i}')).i)
 
 

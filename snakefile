@@ -67,7 +67,7 @@ rule final:
         f"intergreted_vir_check_{RUN}.csv",
         f"results/hosts_lineage_{RUN}.csv",
         f"logs/stats_run_{RUN}.csv",
-        "results/range_10x_coverage.cov"
+        f"{RUN}/results/range_10x_coverage.cov"
 
 ############################### Read processing #################################################
 include: f"snakefiles/read_processing.snake"
