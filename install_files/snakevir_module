@@ -1,0 +1,21 @@
+#%Module1.0################
+##
+
+module-whatis "Origin: Conda packages"
+
+module-whatis "Description: snakeVir env for snakeVir pipeline"
+
+
+proc ModulesHelp { } {
+  
+  puts stdout "\n"
+  puts stdout "This software has been deployed by creating a dedicated environment with Conda.\n"
+  puts stdout "To list the Conda packages within this environment : conda list"
+  puts stdout "\n"
+}
+
+
+
+prepend-path PATH /home/charriat/Documents/Programmation/test_snakevir/tools/snakevir_env/bin
+prepend-path LD_LIBRARY_PATH /home/charriat/Documents/Programmation/test_snakevir/tools/snakevir_env/lib
+prepend-path CPATH /home/charriat/Documents/Programmation/test_snakevir/tools/snakevir_env/include

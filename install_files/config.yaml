@@ -1,0 +1,50 @@
+# YAML file format
+# Some options for the seekviralreads snakefile pipeline
+# A name for the run:
+run: "RUN_NAME"
+# path to fastq files. All samples fastq are in this directory and formatted as {sample}_1.fastq and {sample}_2.fastq
+fastq: "/PATH/TO/FASTQ/DIRECTORY/"
+# Indicate how the reads are named (ex:_R1 , _R2 or _001_R1 , _001_R2)
+ext_R1: "_1"
+ext_R2: "_2"
+
+# Indicate the fastq extension (ex: fastq.gz , fastq , fq )
+ext: ".fastq.gz"
+
+threads_default: 1
+threads_Map_On_host: 4
+threads_Map_On_bacteria: 4
+threads_Megahit_Assembly: 8
+threads_Map_On_Assembly: 4
+threads_Blast_contigs_on_nr: 1
+threads_Blast_contigs_on_nt: 4
+
+# Sequence of sequencing adapters
+A3: "CAGCGGACGCCTATGTGATG"
+A5: "CATCACATAGGCGTCCGCTG"
+
+#Diamond-specific protein database built from NCBI nr database
+base_nr: "/PATH/TO/DIAMOND/NR/DATABASE"
+#Blast-specific nucleotide database
+base_nt: "/PATH/TO/NT/DATABASXE"
+
+
+# Path to host sequences
+# Bacterial Ribosomal RNA sequence without duplicates from silva database
+rRNA_bact: "/home/charriat/Documents/Programmation/test_snakevir/tools/database//silva_db/silva_138.1_bacteria.fasta"
+# Dipetera Ribosomal RNA sequence from silva database without sequence with viral homology (blastn against ntvir)
+rRNA_host: "/home/charriat/Documents/Programmation/test_snakevir/tools/database//silva_db/silva_138.1_insecta.fasta"
+
+
+#File joining sequence IDs to taxonomic ids nr
+base_taxo: "/home/charriat/Documents/Programmation/test_snakevir/tools/database//prot.accession2taxid.gz"
+#File joining sequence IDs to taxonomic ids nt
+base_taxo: "/home/charriat/Documents/Programmation/test_snakevir/tools/database//prot.accession2taxid.gz"
+#File with virus host informations
+host_db: "/home/charriat/Documents/Programmation/test_snakevir/tools/database//virushostdb.tsv"
+
+#Path to external scipts
+Scripts: "/home/charriat/Documents/Programmation/snakevir/install_files/script"
+
+#Path to module file for tools
+module_file:"/home/charriat/Documents/Programmation/test_snakevir/tools/snakevir_module"
