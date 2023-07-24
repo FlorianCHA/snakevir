@@ -5,7 +5,7 @@ import rich_click as click
 from pathlib import Path
 import sys
 import subprocess
-import yaml
+from cookiecutter.main import cookiecutter
 
 def create_directory(path):
     '''
@@ -167,6 +167,8 @@ def module_file(path,install_path):
               help=" Update conda environment (Re-install conda environment even if it's already install)")
 @click.option('--database', '-d', is_flag=True,
               help="Update database (Re-download files even if it's already download)")
+@click.option('--database', '-d', is_flag=True,
+              help="Update database (Re-download files even if it's already download)")
 
 def install(path, tool, database, skip):
     ### Install tools ###
@@ -185,6 +187,31 @@ def install(path, tool, database, skip):
 
     ### Modify config.yaml ###
     config_yml(path, database_path, install_path)
+
+    ### Create profile for slurm cluster ###
+    cookiecutter(template = f'https://github.com/Snakemake-Profiles/slurm.git',
+                 no_input=True,
+                 extra_context={ "sbatch_defaults": "--export=ALL",
+                                "cluster_config": f"{install_path}/cluster.yaml",
+                                },
+                 overwrite_if_exists=True,
+                 output_dir=f'{path}/profile/',
+                 skip_if_file_exists=True)
+    add_config_slurm = 'cluster-cancel: "scancel"\n' \
+                       'restart-times: 0\n' \
+                       'jobscript: "slurm-jobscript.sh"\n' \
+                       'cluster: "slurm-submit.py"\n' \
+                       'cluster-status: "slurm-status.py"\n' \
+                       'max-jobs-per-second: 1\n' \
+                       'max-status-checks-per-second: 10\n' \
+                       'local-cores: 1\n' \
+                       'jobs: 200\n' \
+                       'use-envmodules: true' \
+                       'latency-wait: 1296000\n' \
+                       'printshellcmds: true' \
+                       ''
+    with open(f'{path}/profile/slurm/config.yaml', 'w') as f:
+        f.write(add_config_slurm)
 
 if __name__ == '__main__':
     install()

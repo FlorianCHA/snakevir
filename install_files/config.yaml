@@ -47,4 +47,4 @@ host_db: "/home/charriat/Documents/Programmation/test_snakevir/tools/database//v
 Scripts: "/home/charriat/Documents/Programmation/snakevir/install_files/script"
 
 #Path to module file for tools
-module_file:"/home/charriat/Documents/Programmation/test_snakevir/tools/snakevir_module"
+module_file: "/home/charriat/Documents/Programmation/test_snakevir/tools/snakevir_module"
