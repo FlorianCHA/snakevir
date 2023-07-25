@@ -216,5 +216,9 @@ def function_install(path, tool, database, skip):
     with open(f'{path}/profile/slurm/config.yaml', 'w') as f:
         f.write(add_config_slurm)
 
+    ### Write file for verif installation in main command ###
+    with open(f'{install_path}/.install',"w") as f:
+        f.write('DONE')
+
 if __name__ == '__main__':
     __install()
