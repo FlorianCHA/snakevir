@@ -9,14 +9,25 @@ from make_config import function_make_config
 
 version = "1.0.0"
 
+click.rich_click.COMMAND_GROUPS = {
+    "main.py": [
+        {
+            "name": "Install",
+            "commands": ["install_cluster", "make_config","edit_cluster"],
+        },
+        {
+            "name": "Run snakevir workflow",
+            "commands": ["run"],
+        },
+    ]
+}
+
 @click.group(name=f"snakevir", invoke_without_command=True, no_args_is_help=True)
 @click.version_option(version, "-v", "--version", message="%(prog)s, version %(version)s")
 @click.pass_context
 def main_command(ctx):
     """
     """
-
-
 
 @click.command("install_cluster", short_help=f'Install snakevir on HPC cluster',
                context_settings=dict(max_content_width=800))
@@ -59,7 +70,7 @@ click.rich_click.OPTION_GROUPS = {
         },
     ]
 }
-@click.command("make_config", short_help=f'Create config file at yaml format for snakevir',
+@click.command("make_config", short_help=f'Create config file at yaml format',
                context_settings=dict(max_content_width=800))
 @click.option('--output', '-o', type=click.Path(resolve_path=True), required=True,
               help="Path of the output file with '.yaml' extension (config.yml needed for snakevir.")
@@ -89,7 +100,7 @@ def make_config(name, fastq, r1, r2, ext, path_diamond_nr, path_blast_nt, a3, a5
     """
     function_make_config(name, fastq, r1, r2, ext, path_diamond_nr, path_blast_nt, a3, a5, output)
 
-@click.command("edit_cluster", short_help=f'Create config file at yaml format for snakevir',
+@click.command("edit_cluster", short_help=f'Create cluster config file',
                context_settings=dict(max_content_width=800))
 @click.option('--partition', '-p', default="False", type=str,
               help="Name of the default partition.")
@@ -101,9 +112,24 @@ def edit_cluster(partition):
     """
     function_edit_cluster(partition)
 
+@click.command("run", short_help=f'Create cluster config file',
+               context_settings=dict(max_content_width=800))
+@click.option('--partition', '-p', default="False", type=str,
+              help="Name of the default partition.")
+def run(partition):
+    """
+    The command make_config is used for create config fime at yaml format for snakevir. You have 2 choice, you can use arguement
+    for write all information needed in config or you can only use some argument (-o is mandatory) and wirte in the file after
+    the missing information.
+    """
+    function_edit_cluster(partition)
 
-main_command.add_command(make_config)
+if Path(f'{Path(__file__).resolve().parent.parent}/install_files/.install').exists():
+    print('True')
+    main_command.add_command(run)
+
 main_command.add_command(install)
+main_command.add_command(make_config)
 main_command.add_command(edit_cluster)
 
 
