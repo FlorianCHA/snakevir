@@ -101,7 +101,7 @@ def install_database(path, database_path, install_path, database, skip):
                   f'echo "\t* Create index for bwa tools";' \
                   f'for fasta in {database_path}silva_db/*.fasta; do {path}/snakevir_env/bin/bwa index $fasta 1> stdout 2> stdout;done;' \
                   f'rm stdout {database_path}silva_db.tar.gz'
-        list_skip.append(download(f'{database_path}silva_db', command, database, skip))
+        list_skip.append(download(f'{database_path}silva_db/silva_138.1_bacteria.fasta.amb', command, database, skip))
 
         # Check if some files aren't download because they already exist
         if len([file_skiped for file_skiped in list_skip if file_skiped != None]) != 0:
@@ -172,7 +172,7 @@ def module_file(path,install_path):
 
 def function_install(path, tool, database, skip):
     """
-    This function allow to install tools with conda and dowload database needed by snakevir except nt & nr database
+    This function allow to install tools with conda and download database needed by snakevir except nt & nr database
     """
     ### Install tools ###
     # Path to install file
