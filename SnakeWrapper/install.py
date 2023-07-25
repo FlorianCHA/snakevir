@@ -170,7 +170,10 @@ def module_file(path,install_path):
 @click.option('--database', '-d', is_flag=True,
               help="Update database (Re-download files even if it's already download)")
 
-def install(path, tool, database, skip):
+def function_install(path, tool, database, skip):
+    """
+    This function allow to install tools with conda and dowload database needed by snakevir except nt & nr database
+    """
     ### Install tools ###
     # Path to install file
     install_path = f'{Path(__file__).resolve().parent.parent}/install_files'
@@ -214,4 +217,4 @@ def install(path, tool, database, skip):
         f.write(add_config_slurm)
 
 if __name__ == '__main__':
-    install()
+    __install()
