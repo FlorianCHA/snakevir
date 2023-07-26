@@ -3,13 +3,8 @@
 # Module import
 import rich_click as click
 from pathlib import Path
-import sys
-import subprocess
-import yaml
-@click.command("edit_cluster", short_help=f'Create config file at yaml format for snakevir',
-               context_settings=dict(max_content_width=800))
-@click.option('--partition', '-p', default="False", type=str,
-              help="Name of the default partition.")
+
+
 def function_edit_cluster(partition):
     """
     The command make_config is used for create config fime at yaml format for snakevir. You have 2 choice, you can use arguement
@@ -35,4 +30,4 @@ def function_edit_cluster(partition):
     click.edit(require_save=True, extension='.yaml', filename=f'{install_path}/cluster.yaml')
 
 if __name__ == '__main__':
-    __edit_cluster()
+    function_edit_cluster()

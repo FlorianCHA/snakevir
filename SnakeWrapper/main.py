@@ -4,7 +4,7 @@
 import rich_click as click
 from pathlib import Path
 from edit_cluster import function_edit_cluster
-from install import function_install
+from install import __install
 from make_config import function_make_config
 
 version = "1.0.0"
@@ -13,7 +13,7 @@ click.rich_click.COMMAND_GROUPS = {
     "main.py": [
         {
             "name": "Install",
-            "commands": ["install_cluster", "make_config","edit_cluster"],
+            "commands": ["install_cluster", "make_config", "edit_cluster"],
         },
         {
             "name": "Run snakevir workflow",
@@ -21,18 +21,14 @@ click.rich_click.COMMAND_GROUPS = {
         },
     ]
 }
-
 @click.group(name=f"snakevir", invoke_without_command=True, no_args_is_help=True)
-@click.version_option(version, "-v", "--version", message="%(prog)s, version %(version)s")
-@click.pass_context
-def main_command(ctx):
+def main_command():
     """
     """
 
 @click.command("install_cluster", short_help=f'Install snakevir on HPC cluster',
                context_settings=dict(max_content_width=800))
-@click.option('--path', '-p',type=click.Path(exists=True, resolve_path=True),
-              prompt='Choose your PATH for conda environment installation', required=True,
+@click.option('--path', '-p',type=click.Path(exists=True, resolve_path=True), required=True,
               help="Give the installation PATH for conda environment that contains all the necessary tools for snakevir.")
 @click.option('--skip', '-s', is_flag=True,
               help="Skip all install and download if it's already existing")
@@ -40,13 +36,11 @@ def main_command(ctx):
               help=" Update conda environment (Re-install conda environment even if it's already install)")
 @click.option('--database', '-d', is_flag=True,
               help="Update database (Re-download files even if it's already download)")
-@click.option('--database', '-d', is_flag=True,
-              help="Update database (Re-download files even if it's already download)")
 def install(path, tool, database, skip):
     """
     This function allow to install tools with conda and dowload database needed by snakevir except nt & nr database
     """
-    function_install(path, tool, database, skip)
+    __install(path, tool, database, skip)
 
 
 click.rich_click.GROUP_ARGUMENTS_OPTIONS = True
@@ -114,18 +108,18 @@ def edit_cluster(partition):
 
 @click.command("run", short_help=f'Create cluster config file',
                context_settings=dict(max_content_width=800))
-@click.option('--partition', '-p', default="False", type=str,
-              help="Name of the default partition.")
-def run(partition):
+@click.option('--config', '-c',  type=str, required=True,
+              help="Path of config file")
+def run(config):
     """
-    The command make_config is used for create config fime at yaml format for snakevir. You have 2 choice, you can use arguement
-    for write all information needed in config or you can only use some argument (-o is mandatory) and wirte in the file after
-    the missing information.
+    Run the snbakevir workflow.
     """
-    function_edit_cluster(partition)
+    path_snakevir = Path(__file__).resolve().parent.parent
+    cmd = f"snakemake  -s {path_snakevir}/snakefile --configfile {config} --profile {path_snakevir}/install_files/profile/slurm --cluster {path_snakevir}/install_files/cluster.yaml --show-failed-logs"
+
+
 
 if Path(f'{Path(__file__).resolve().parent.parent}/install_files/.install').exists():
-    print('True')
     main_command.add_command(run)
 
 main_command.add_command(install)
