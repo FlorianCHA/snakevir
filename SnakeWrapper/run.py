@@ -3,6 +3,8 @@
 # Module import
 import rich_click as click
 from pathlib import Path
+import subprocess
+import sys
 # import pyyaml module
 import yaml
 
@@ -60,11 +62,10 @@ def verif_config(config):
     nb_file = len(sorted(blast_directory.rglob(f'{name_database}*')))
     # Check if they have at least 8 file in database ( 8 extension of makeblastdn) here name* , for name.00, name .01 of makeblastdb output
     if nb_file < 8:
-        click.secho(
+        raise click.secho(
             f"ERROR: You'r blast nt database '{blast_nt}' doesn't exist, please check you're path",
             fg='red', bold=True, err=True)
-        exit()
-        
+
 @click.command("run", short_help=f'Create cluster config file',
                context_settings=dict(max_content_width=800))
 @click.option('--config', '-c',  type=str, required=True,
@@ -76,9 +77,9 @@ def run(config):
     path_snakevir = Path(__file__).resolve().parent.parent
     verif_config(config)
     cmd = f"snakemake  -s {path_snakevir}/snakefile --configfile {config} --profile {path_snakevir}/install_files/profile/slurm --cluster {path_snakevir}/install_files/cluster.yaml --show-failed-logs"
-
-
-
+    process = subprocess.run(cmd, shell=True, check=False, stdout=sys.stdout, stderr=sys.stderr)
+    if int(process.returncode) >= 1:
+        raise
 
 if __name__ == '__main__':
     run()
