@@ -95,13 +95,13 @@ def install_database(path, database_path, install_path, database, skip):
         list_skip.append(download(f'{database_path}virushostdb.tsv', command, database, skip))
         # Prepare silva database
         command = f'echo "\n\t* Extract Archive";' \
-                  f'cp {install_path}/silva_db.tar.gz {database_path}silva_db.tar.gz;' \
+                  f'wget https://github.com/FlorianCHA/snakevir/raw/master/install_files/silva_db.tar.gz -O {database_path}silva_db.tar.gz;' \
                   f'tar zxvf {database_path}silva_db.tar.gz -C {database_path} > stdout;' \
                   f'gunzip {database_path}silva_db/*.fasta.gz;' \
                   f'echo "\t* Create index for bwa tools";' \
                   f'for fasta in {database_path}silva_db/*.fasta; do {path}/snakevir_env/bin/bwa index $fasta 1> stdout 2> stdout;done;' \
                   f'rm stdout {database_path}silva_db.tar.gz'
-        list_skip.append(download(f'{database_path}silva_db', command, database, skip))
+        list_skip.append(download(f'{database_path}silva_db/silva_138.1_bacteria.fasta.amb', command, database, skip))
 
         # Check if some files aren't download because they already exist
         if len([file_skiped for file_skiped in list_skip if file_skiped != None]) != 0:
@@ -155,22 +155,10 @@ def module_file(path,install_path):
     with open(f'{path}/snakevir_module', 'w') as new_file:
         new_file.write("".join(new_module))
 
-
-@click.command("install_cluster", short_help=f'Install snakevir on HPC cluster',
-               context_settings=dict(max_content_width=800))
-@click.option('--path', '-p',type=click.Path(exists=True, resolve_path=True),
-              prompt='Choose your PATH for conda environment installation', required=True,
-              help="Give the installation PATH for conda environment that contains all the necessary tools for snakevir.")
-@click.option('--skip', '-s', is_flag=True,
-              help="Skip all install and download if it's already existing")
-@click.option('--tool', '-t', is_flag=True,
-              help=" Update conda environment (Re-install conda environment even if it's already install)")
-@click.option('--database', '-d', is_flag=True,
-              help="Update database (Re-download files even if it's already download)")
-@click.option('--database', '-d', is_flag=True,
-              help="Update database (Re-download files even if it's already download)")
-
-def install(path, tool, database, skip):
+def __install(path, tool, database, skip):
+    """
+    This function allow to install tools with conda and download database needed by snakevir except nt & nr database
+    """
     ### Install tools ###
     # Path to install file
     install_path = f'{Path(__file__).resolve().parent.parent}/install_files'
@@ -195,7 +183,7 @@ def install(path, tool, database, skip):
                                 "cluster_config": f"{install_path}/cluster.yaml",
                                 },
                  overwrite_if_exists=True,
-                 output_dir=f'{path}/profile/',
+                 output_dir=f'{install_path}/profile/',
                  skip_if_file_exists=True)
     add_config_slurm = 'cluster-cancel: "scancel"\n' \
                        'restart-times: 0\n' \
@@ -210,8 +198,10 @@ def install(path, tool, database, skip):
                        'latency-wait: 1296000\n' \
                        'printshellcmds: true' \
                        ''
-    with open(f'{path}/profile/slurm/config.yaml', 'w') as f:
+    with open(f'{install_path}/profile/slurm/config.yaml', 'w') as f:
         f.write(add_config_slurm)
 
-if __name__ == '__main__':
-    install()
+    ### Write file for verif installation in main command ###
+    with open(f'{install_path}/.install',"w") as f:
+        f.write('DONE')
+
