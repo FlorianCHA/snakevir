@@ -38,7 +38,7 @@ def main():
               help=" Update conda environment (Re-install conda environment even if it's already install)")
 @click.option('--database', '-d', is_flag=True,
               help="Update database (Re-download files even if it's already download)")
-def install(path, tool, database, skip):
+def install_cluster(path, tool, database, skip):
     """
     This function allow to install tools with conda and dowload database needed by snakevir except nt & nr database
     """

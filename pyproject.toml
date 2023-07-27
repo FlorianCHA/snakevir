@@ -13,7 +13,10 @@ dependencies = [
     "click",
     "rich_click",
     "cookiecutter",
-    "snakemake"
+    "snakemake",
+    "sphinx_copybutton",
+    "sphinx_rtd_theme",
+    "sphinx_click"
 ]
 
 [tool.setuptools]
