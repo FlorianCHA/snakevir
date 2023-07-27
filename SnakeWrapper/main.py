@@ -6,7 +6,7 @@ from pathlib import Path
 from edit_cluster import function_edit_cluster
 from install import __install
 from make_config import function_make_config
-
+from run import  __run
 version = "1.0.0"
 
 click.rich_click.COMMAND_GROUPS = {
@@ -21,6 +21,7 @@ click.rich_click.COMMAND_GROUPS = {
         },
     ]
 }
+
 @click.group(name=f"snakevir", invoke_without_command=True, no_args_is_help=True)
 def main_command():
     """

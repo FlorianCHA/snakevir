@@ -66,11 +66,7 @@ def verif_config(config):
             f"ERROR: You'r blast nt database '{blast_nt}' doesn't exist, please check you're path",
             fg='red', bold=True, err=True)
 
-@click.command("run", short_help=f'Create cluster config file',
-               context_settings=dict(max_content_width=800))
-@click.option('--config', '-c',  type=str, required=True,
-              help="Path of config file")
-def run(config):
+def __run(config):
     """
     Run the snbakevir workflow.
     """
@@ -82,4 +78,4 @@ def run(config):
         raise
 
 if __name__ == '__main__':
-    run()
+    __run()
