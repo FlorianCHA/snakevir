@@ -1,5 +1,5 @@
-.. image:: _images/snakevir_logo.png
-   :target: _images/snakevir_logo.png
+.. image:: _images/snakevir_logo_title.png
+   :target: _images/snakevir_logo_title.png
    :align: center
    :alt: Snakevir Logo
 
@@ -56,7 +56,7 @@ Included tools :
    * For the moment, this workflow doesn't work with diamond version >= 2.1.0 because the taxonmap option change (need to use this option on makeblastdb command).
 
 Counting table
---------------
+..............
 
 SnakeVir quantified the number of reads per virus-like contig and library through mapping with BWA. Duplicate reads had been previously removed with the markdup tool in Samtools. Contigs sharing the same best hit were grouped into a viral operational taxonomic unit (vOTU) as previously described.
 
