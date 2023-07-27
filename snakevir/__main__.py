@@ -3,10 +3,10 @@
 # Module import
 import rich_click as click
 from pathlib import Path
-from edit_cluster import __edit_cluster
-from install import __install
-from make_config import __make_config
-from run import __run
+from function.edit_cluster import __edit_cluster
+from function.install import __install
+from function.make_config import __make_config
+from function.run import __run
 version = "1.0.0"
 
 click.rich_click.COMMAND_GROUPS = {
