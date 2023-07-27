@@ -5,7 +5,7 @@ import rich_click as click
 from pathlib import Path
 
 
-def function_edit_cluster(partition):
+def __edit_cluster(partition):
     """
     The command make_config is used for create config fime at yaml format for snakevir. You have 2 choice, you can use arguement
     for write all information needed in config or you can only use some argument (-o is mandatory) and wirte in the file after
@@ -28,6 +28,3 @@ def function_edit_cluster(partition):
 
     # Open editor to modify ressources
     click.edit(require_save=True, extension='.yaml', filename=f'{install_path}/cluster.yaml')
-
-if __name__ == '__main__':
-    function_edit_cluster()

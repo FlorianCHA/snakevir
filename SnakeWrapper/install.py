@@ -205,5 +205,3 @@ def __install(path, tool, database, skip):
     with open(f'{install_path}/.install',"w") as f:
         f.write('DONE')
 
-if __name__ == '__main__':
-    function_install()

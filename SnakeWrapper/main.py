@@ -3,10 +3,10 @@
 # Module import
 import rich_click as click
 from pathlib import Path
-from edit_cluster import function_edit_cluster
+from edit_cluster import __edit_cluster
 from install import __install
-from make_config import function_make_config
-from run import  __run
+from make_config import __make_config
+from run import __run
 version = "1.0.0"
 
 click.rich_click.COMMAND_GROUPS = {
@@ -93,7 +93,7 @@ def make_config(name, fastq, r1, r2, ext, path_diamond_nr, path_blast_nt, a3, a5
     for write all information needed in config or you can only use some argument (-o is mandatory) and wirte in the file after
     the missing information.
     """
-    function_make_config(name, fastq, r1, r2, ext, path_diamond_nr, path_blast_nt, a3, a5, output)
+    __make_config(name, fastq, r1, r2, ext, path_diamond_nr, path_blast_nt, a3, a5, output)
 
 @click.command("edit_cluster", short_help=f'Create cluster config file',
                context_settings=dict(max_content_width=800))
@@ -105,7 +105,7 @@ def edit_cluster(partition):
     for write all information needed in config or you can only use some argument (-o is mandatory) and wirte in the file after
     the missing information.
     """
-    function_edit_cluster(partition)
+    __edit_cluster(partition)
 
 @click.command("run", short_help=f'Create cluster config file',
                context_settings=dict(max_content_width=800))
@@ -115,9 +115,7 @@ def run(config):
     """
     Run the snbakevir workflow.
     """
-    path_snakevir = Path(__file__).resolve().parent.parent
-    cmd = f"snakemake  -s {path_snakevir}/snakefile --configfile {config} --profile {path_snakevir}/install_files/profile/slurm --cluster {path_snakevir}/install_files/cluster.yaml --show-failed-logs"
-
+    __run(config)
 
 
 if Path(f'{Path(__file__).resolve().parent.parent}/install_files/.install').exists():

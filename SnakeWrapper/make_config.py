@@ -3,7 +3,7 @@
 # Module import
 from pathlib import Path
 
-def function_make_config(name, fastq, r1, r2, ext, path_diamond_nr, path_blast_nt, a3, a5, output):
+def __make_config(name, fastq, r1, r2, ext, path_diamond_nr, path_blast_nt, a3, a5, output):
     """
     The command make_config is used for create config fime at yaml format for snakevir. You have 2 choice, you can use arguement
     for write all information needed in config or you can only use some argument (-o is mandatory) and wirte in the file after
@@ -36,6 +36,3 @@ def function_make_config(name, fastq, r1, r2, ext, path_diamond_nr, path_blast_n
 
     with open(f'{output}', 'w') as new_file:
         new_file.write("".join(new_config))
-
-if __name__ == '__main__':
-    function_make_config()
