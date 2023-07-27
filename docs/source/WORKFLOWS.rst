@@ -9,8 +9,8 @@ Snakevir allows you to build a workflow using a simple ``config.yaml`` configura
 
 To create this file, just run:
 
-.. click:: culebrONT.main:make_config
-    :prog: culebrONT make_config
+.. click:: snakevir.main:make_config
+    :prog: snakevir make_config
     :show-nested:
 
 If you didn't use the command for complete your config file, you can edit your config file :
@@ -80,14 +80,14 @@ Before attempting to run snakevir, please verify that you have already modified 
 If you installed snakevir and create the config file, you can now run:
 
 
-.. click:: culebrONT.main:run
-    :prog: culebrONT run
+.. click:: snakevir.main:run
+    :prog: snakevir run
     :show-nested:
 
 ------------------------------------------------------------------------
 
 
-Output on CulebrONT
+Output on Snakevir
 ===================
 
 To modify.

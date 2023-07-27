@@ -8,8 +8,8 @@ Welcome to Snakevir's documentation!
    :alt: Snakevir Logo
 
 .. toctree::
-   :caption: About CulebrONT
-   :name: about_culebront
+   :caption: About snakevir
+   :name: about_snakevir
    :maxdepth: 2
 
    ABOUT.rst
@@ -37,7 +37,7 @@ Welcome to Snakevir's documentation!
 
 .. toctree::
    :caption: API
-   :name: api_culebront
+   :name: api_snakevir
    :maxdepth: 2
 
    click.rst
