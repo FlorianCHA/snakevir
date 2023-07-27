@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "snakevir"
+version = "1.0.0"
+description = "This is a worflow that analyses some metagenomics data"
+authors = [
+    { name = "Florian CHARRIAT (CIRAD)", email = "florian.charriat@cirad.fr" },
+    { name = "Antoni Exbrayat (CIRAD)"}]
+dependencies = [
+    "click",
+    "rich_click",
+    "cookiecutter",
+    "snakemake"
+]
+
+[tool.setuptools]
+include-package-data = true
+
+[project.scripts]
+snakevir = "snakevir.main:main"
+
+[project.urls]
+Homepage = "https://github.com/FlorianCHA/snakevir"

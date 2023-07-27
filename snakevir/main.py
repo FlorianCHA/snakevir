@@ -3,14 +3,15 @@
 # Module import
 import rich_click as click
 from pathlib import Path
-from function.edit_cluster import __edit_cluster
-from function.install import __install
-from function.make_config import __make_config
-from function.run import __run
+from .function.edit_cluster import __edit_cluster
+from .function.install import __install
+from .function.make_config import __make_config
+from .function.run import __run
+
 version = "1.0.0"
 
 click.rich_click.COMMAND_GROUPS = {
-    "main.py": [
+    "snakevir": [
         {
             "name": "Install",
             "commands": ["install_cluster", "make_config", "edit_cluster"],
@@ -23,7 +24,7 @@ click.rich_click.COMMAND_GROUPS = {
 }
 
 @click.group(name=f"snakevir", invoke_without_command=True, no_args_is_help=True)
-def main_command():
+def main():
     """
     """
 
@@ -46,7 +47,7 @@ def install(path, tool, database, skip):
 
 click.rich_click.GROUP_ARGUMENTS_OPTIONS = True
 click.rich_click.OPTION_GROUPS = {
-    "main.py make_config": [
+    "snakevir make_config": [
         {
             "name": "Mandatory options",
             "options": ["--output"],
@@ -119,12 +120,12 @@ def run(config):
 
 
 if Path(f'{Path(__file__).resolve().parent.parent}/install_files/.install').exists():
-    main_command.add_command(run)
+    main.add_command(run)
 
-main_command.add_command(install)
-main_command.add_command(make_config)
-main_command.add_command(edit_cluster)
+main.add_command(install)
+main.add_command(make_config)
+main.add_command(edit_cluster)
 
 
 if __name__ == '__main__':
-    main_command()
+    main()
