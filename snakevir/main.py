@@ -119,13 +119,12 @@ def run(config):
     __run(config)
 
 
-if Path(f'{Path(__file__).resolve().parent.parent}/install_files/.install').exists():
+if Path(f'{Path(__file__).resolve().parent}/install_files/.install').exists():
     main.add_command(run)
 
 main.add_command(install_cluster)
 main.add_command(make_config)
 main.add_command(edit_cluster)
-
 
 if __name__ == '__main__':
     main()
