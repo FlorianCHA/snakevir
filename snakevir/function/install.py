@@ -131,7 +131,7 @@ def config_yml(path, database_path, install_path):
             if "Scripts" in line:
                 line = f'Scripts: "{install_path}/script"\n'
             if "module_file:" in line:
-                line = f'module_file:"{path}/snakevir_module"\n'
+                line = f'module_file: "{path}/snakevir_module"\n'
             new_config.append(line)
 
     with open(f'{install_path}/config.yaml', 'w') as new_file:
