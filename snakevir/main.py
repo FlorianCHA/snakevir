@@ -122,7 +122,7 @@ def run(config):
 if Path(f'{Path(__file__).resolve().parent.parent}/install_files/.install').exists():
     main.add_command(run)
 
-main.add_command(install)
+main.add_command(install_cluster)
 main.add_command(make_config)
 main.add_command(edit_cluster)
 
