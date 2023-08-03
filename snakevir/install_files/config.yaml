@@ -4,6 +4,8 @@
 run: "RUN_NAME"
 # path to fastq files. All samples fastq are in this directory and formatted as {sample}_1.fastq and {sample}_2.fastq
 fastq: "/PATH/TO/FASTQ/DIRECTORY/"
+# path to output directory
+output: "/PATH/TO/FASTQ/DIRECTORY/"
 # Indicate how the reads are named (ex:_R1 , _R2 or _001_R1 , _001_R2)
 ext_R1: "_1"
 ext_R2: "_2"
