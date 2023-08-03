@@ -1,8 +1,8 @@
 rule Blast_contigs_on_nr:
     input:
-        assembly=rules.Merge_Mega_cap_contigs.output.final_assembly
+        assembly = rules.Merge_Mega_cap_contigs.output.final_assembly
     output:
-        blast_raw="Blast_nr_results/Contigs_{RUN}.blast_nr_results_raw.tsv"
+        blast_raw = f"{output_directory}/04_blast_output/01_blast_nr_results/Contigs_{{RUN}}.blast_nr_results_raw.tsv"
     params:
         blastDBpath=base_nr,
         basetaxoDBpath=base_taxo
@@ -14,9 +14,9 @@ rule Blast_contigs_on_nr:
 
 rule Remove_poor_qual_Blast_unmapped_on_nr_vir:
     input:
-        blast_raw=rules.Blast_contigs_on_nr.output.blast_raw
+        blast_raw = rules.Blast_contigs_on_nr.output.blast_raw
     output:
-        blast_tsv="Blast_nr_results/Contigs_{RUN}.blast_nr_results.tsv"
+        blast_tsv = f"{output_directory}/04_blast_output/01_blast_nr_results/Contigs_{{RUN}}.blast_nr_results.tsv"
     threads: 5
     shell:
         """
@@ -26,10 +26,10 @@ rule Remove_poor_qual_Blast_unmapped_on_nr_vir:
 # Flo : "Blast_nr_vir_results/Contigs_{RUN}.blast_nr_vir_results.tsv", I don't find which rules create this file.
 rule log_diamond:
     input:
-        blastcontigs_nrvir=f"Blast_nr_vir_results/Contigs_{RUN}.blast_nr_vir_results.tsv",
-        blastcontigs_nr=rules.Remove_poor_qual_Blast_unmapped_on_nr_vir.output.blast_tsv
+        blastcontigs_nrvir = f"{output_directory}/04_blast_output/01_blast_nr_results/Contigs_{{RUN}}.blast_nr_vir_results.tsv",
+        blastcontigs_nr = rules.Remove_poor_qual_Blast_unmapped_on_nr_vir.output.blast_tsv
     output:
-        log="logs/logs_diamond/{{smp}}_{RUN}_diamond.txt"
+        log=f"{output_directory}/logs/04_blast_output/01_blast_nr_results/{{smp}}_{{RUN}}_diamond.txt"
     shell:
         """
         awk '{{print $1}}' {input.blastcontigs_nrvir} | sort -u | wc -l >> {output.log}
@@ -38,9 +38,9 @@ rule log_diamond:
 
 rule Join_seq_acc_taxo_nr:
     input:
-        contigs=rules.Remove_poor_qual_Blast_unmapped_on_nr_vir.output.blast_tsv
+        contigs = rules.Remove_poor_qual_Blast_unmapped_on_nr_vir.output.blast_tsv
     output:
-        taxo="Taxonomy/Seq_hits_info_{RUN}.csv"
+        taxo = f"{output_directory}/04_blast_output/02_taxonomy/Seq_hits_info_{{RUN}}.csv"
     shell:
         """
         cat {input.contigs} | awk -F'\t' '$14!=""' | sort -u -k1,1 | sed "s/;/\t/g" | awk '{{print $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$(NF)}}'| sed "s/ /\t/g" |sed -e 's/\t/,/g'| sed -e '1i\qseqid,sseqid,qlen,slen,length,qstart,qend,sstart,send,qcovhsp,pident,evalue,bitscore,tax_id' > {output.taxo}
@@ -48,20 +48,19 @@ rule Join_seq_acc_taxo_nr:
 
 rule get_nr_lineage_from_taxids:
     input:
-        seq=rules.Join_seq_acc_taxo_nr.output.taxo,
-        blst=rules.Remove_poor_qual_Blast_unmapped_on_nr_vir.output.blast_tsv
+        seq = rules.Join_seq_acc_taxo_nr.output.taxo,
+        blst = rules.Remove_poor_qual_Blast_unmapped_on_nr_vir.output.blast_tsv
     output:
-        lin="Taxonomy/lineage_{RUN}.csv",
-        lin5="Taxonomy/lineage_5_hit_{RUN}.csv",
-        lin5c="Taxonomy/lineage_5_hit_{RUN}_cor.csv",
-        blst="Taxonomy/Blast_5_hit_{RUN}.csv",
-        sort_seq_ids="tmp/sort_seq_ids_{RUN}.csv"
-
+        lin = f"{output_directory}/04_blast_output/02_taxonomy/lineage_{{RUN}}.csv",
+        lin5 = f"{output_directory}/04_blast_output/02_taxonomy/lineage_5_hit_{{RUN}}.csv",
+        lin5c = f"{output_directory}/04_blast_output/02_taxonomy/lineage_5_hit_{{RUN}}_cor.csv",
+        blst = f"{output_directory}/04_blast_output/02_taxonomy/Blast_5_hit_{{RUN}}.csv",
+        sort_seq_ids = f"{output_directory}/04_blast_output/02_taxonomy/sort_seq_ids_{{RUN}}.csv"
     params:
-        getr=scriptdir + "get_rank.py",
-        com=scriptdir + "complet_taxo_dic_v3.py",
-        pickle_shi=scriptdir + "correc_taxo.pickle",
-        pickle_cust=scriptdir + "custom_taxo.pickle"
+        getr = f"{scriptdir}get_rank.py",
+        com = f"{scriptdir}complet_taxo_dic_v3.py",
+        pickle_shi = f"{scriptdir}correc_taxo.pickle",
+        pickle_cust = f"{scriptdir}custom_taxo.pickle"
     shell:
         """
         sort -u -k1,1  {input.seq} |sed -e 's/;/,/g'| awk -F',' '{{print $NF}}'| sort -u | sed '/^$/d' | paste -s -d,| python {params.getr} {output.lin}
@@ -79,12 +78,12 @@ rule get_nr_lineage_from_taxids:
 
 rule Build_array_coverage_nr:
     input:
-        lin=rules.get_nr_lineage_from_taxids.output.lin
+        lin = rules.get_nr_lineage_from_taxids.output.lin
     output:
-        by_seq="Coverage/count_table_contigs_{RUN}.csv"
+        by_seq = f"{output_directory}/04_blast_output/03_coverage/count_table_contigs_{RUN}.csv"
     params:
-        script=scriptdir + "build_count_table.py",
-        countdir="CountsMapping/"
+        script = f"{scriptdir}build_count_table.py",
+        countdir = f"{output_directory}/03_mapping_on_assembly/03_CountsMapping/"
     shell:
         """
         python {params.script} {params.countdir} {output.by_seq}
@@ -93,12 +92,12 @@ rule Build_array_coverage_nr:
 # Flo : no intput in script ? Maybe problems when modify directory output
 rule Count_coverage_raw_nr:
     input:
-        count_table=rules.Build_array_coverage_nr.output.by_seq
+        count_table = rules.Build_array_coverage_nr.output.by_seq
     output:
-        by_seq="Coverage/count_contigs_raw_{RUN}.csv"
+        by_seq = f"{output_directory}/04_blast_output/03_coverage/count_contigs_raw_{RUN}.csv"
     params:
-        script=scriptdir + "build_count_table.py",
-        countdir="CountsMapping_raw/"
+        script = f"{scriptdir}build_count_table.py",
+        countdir = f"{output_directory}/03_mapping_on_assembly/02_CountsMapping_raw/"
     shell:
         """
         python {params.script} {params.countdir} {output.by_seq}
@@ -106,17 +105,17 @@ rule Count_coverage_raw_nr:
 
 rule complete_taxo:
     input:
-        blast=rules.get_nr_lineage_from_taxids.output.blst,
-        lin=rules.get_nr_lineage_from_taxids.output.lin,
-        lin5c=rules.get_nr_lineage_from_taxids.output.lin5c
+        blast = rules.get_nr_lineage_from_taxids.output.blst,
+        lin = rules.get_nr_lineage_from_taxids.output.lin,
+        lin5c = rules.get_nr_lineage_from_taxids.output.lin5c
     output:
-        lineage1="Coverage/lineage_{RUN}_tmp.csv",
-        lineage="Coverage/lineage_cor_{RUN}.csv"
+        lineage1 = f"{output_directory}/04_blast_output/03_coverage/lineage_{{RUN}}_tmp.csv",
+        lineage = f"{output_directory}/04_blast_output/03_coverage/lineage_cor_{{RUN}}.csv"
     params:
-        script_mult=scriptdir + "multihit.py",
-        script_compt=scriptdir + "complet_taxo_dic_v3.py",
-        pickle_shi=scriptdir + "correc_taxo.pickle",
-        pickle_cust=scriptdir + "custom_taxo.pickle"
+        script_mult = f"{scriptdir}multihit.py",
+        script_compt = f"{scriptdir}complet_taxo_dic_v3.py",
+        pickle_shi = f"{scriptdir}correc_taxo.pickle",
+        pickle_cust = f"{scriptdir}custom_taxo.pickle"
     shell:
         """
         python {params.script_mult} {input.blast} {input.lin5c} {input.lin} tmp/lin.tmp
@@ -126,10 +125,10 @@ rule complete_taxo:
 
 rule extract_viral_ids:
     input:
-        lineage=rules.complete_taxo.output.lineage,
-        sort_seq_ids=rules.get_nr_lineage_from_taxids.output.sort_seq_ids
+        lineage = rules.complete_taxo.output.lineage,
+        sort_seq_ids = rules.get_nr_lineage_from_taxids.output.sort_seq_ids
     output:
-        taxo="Taxonomy/viral_contigs_ids_{RUN}.txt"
+        taxo = f"{output_directory}/04_blast_output/02_taxonomy/viral_contigs_ids_{{RUN}}.txt"
     shell:
         """
         for i in `awk -F',' '{{print $1}}' {input.lineage}|  sort -n ` ; do grep $i {input.sort_seq_ids} | awk '{{print $2}}'; done > {output.taxo}
@@ -138,10 +137,10 @@ rule extract_viral_ids:
 
 rule extract_viral_contigs:
     input:
-        contig=rules.Merge_Mega_cap_contigs.output.final_assembly,
-        viral_cont_IDS=rules.extract_viral_ids.output.taxo
+        contig = rules.Merge_Mega_cap_contigs.output.final_assembly,
+        viral_cont_IDS = rules.extract_viral_ids.output.taxo
     output:
-        viral_cont="Assembly_results/{RUN}_viral_contigs.fa"
+        viral_cont =  f"{output_directory}/02_assembly_results/{RUN}_viral_contigs.fa"
     shell:
         """
         perl -ne 'if(/^>(\S+)/){{$c=$i{{$1}}}}$c?print:chomp;$i{{$_}}=1 if @ARGV' {input.viral_cont_IDS} {input.contig} > {output.viral_cont};
@@ -149,10 +148,10 @@ rule extract_viral_contigs:
 
 rule Blast_contigs_on_nt:
     input:
-        contig=rules.Merge_Mega_cap_contigs.output.final_assembly,
-        viral_cont=rules.extract_viral_contigs.output.viral_cont
+        contig = rules.Merge_Mega_cap_contigs.output.final_assembly,
+        viral_cont = rules.extract_viral_contigs.output.viral_cont
     output:
-        blast="Blast_nt_results/Contigs_{RUN}.blast_nt_results.tsv"
+        blast = f"{output_directory}/04_blast_output/04_blast_nt_results/Contigs_{{RUN}}.blast_nt_results.tsv"
     params:
         blastDBpath=base_nt
     threads: threads_Blast_contigs_on_nt
@@ -163,9 +162,9 @@ rule Blast_contigs_on_nt:
 
 rule extract_seq_acc:
     input:
-        blast_result=rules.Blast_contigs_on_nt.output.blast
+        blast_resul = rules.Blast_contigs_on_nt.output.blast
     output:
-        temp="tmp/Contigs_{RUN}.blast_nt_results.tsv"
+        temp = f"{output_directory}/04_blast_output/04_blast_nt_results/Contigs_{{RUN}}.blast_nt_results.tsv"
     shell:
         """
         awk -F'|' '{{print $1,$(NF-1)}}' {input.blast_result} | awk '{{$2="";print}}'| awk  '{{$2=substr($2,1, length($2)-2);print}}'| sort -u -k1,1 | sed 's/ /\t/g' |tee {output.temp} | awk '{{print $2}}' >  "tmp/sseq_ids.txt";
@@ -173,9 +172,9 @@ rule extract_seq_acc:
 
 rule extract_tax_ids:
     input:
-        acc_ids=rules.extract_seq_acc.output.temp
+        acc_ids = rules.extract_seq_acc.output.temp
     output:
-        tax_id="tmp/tax_ids_{RUN}.tsv"
+        tax_id = f"{output_directory}/04_blast_output/03_blast_nt_results/tax_ids_{{RUN}}.tsv"
     params:
         basetaxoDBpath=base_taxo_nt
     shell:
@@ -185,11 +184,11 @@ rule extract_tax_ids:
 
 rule join_blst_tax:
     input:
-        tax_ids=rules.extract_tax_ids.output.tax_id,
-        blst=rules.Blast_contigs_on_nt.output.blast,
-        blst_ids=rules.extract_seq_acc.output.temp
+        tax_ids = rules.extract_tax_ids.output.tax_id,
+        blst = rules.Blast_contigs_on_nt.output.blast,
+        blst_ids = rules.extract_seq_acc.output.temp
     output:
-        blst="Taxonomy_nt/Seq_hit_nt_{RUN}.csv"
+        blst = f"{output_directory}/04_blast_output/05_taxonomy_nt/Seq_hit_nt_{{RUN}}.csv"
     shell:
         """
         awk 'NR==FNR{{a[$1]=$2;next}} ($2) in a{{print $0" "a[$2]}}'  {input.tax_ids}  {input.blst_ids} |awk '{{print $1 , $3}}'| sed 's/ /\t/g' > tmp/sseq_ids_tax_id.tsv
@@ -199,12 +198,12 @@ rule join_blst_tax:
 
 rule get_nt_lineage_from_taxids:
     input:
-        taxo=rules.join_blst_tax.output.blst
+        taxo = rules.join_blst_tax.output.blst
     output:
-        lin="Taxonomy_nt/lineage_nt_{RUN}.csv",
-        stat="Coverage_nt/stat_by_seq_nt_{RUN}.csv"
+        lin = f"{output_directory}/04_blast_output/05_taxonomy_nt/lineage_nt_{{RUN}}.csv",
+        stat = f"{output_directory}/04_blast_output/05_taxonomy_nt/stat_by_seq_nt_{{RUN}}.csv"
     params:
-        scriptdir + "get_rank.py"
+        f"{scriptdir}get_rank.py"
     shell:
         """
         sort -u -k1,1  {input.taxo} |sed -e 's/;/,/g'| awk -F',' '{{print $NF}}'| sort -u | sed '/^$/d' | paste -s -d,| python {params} {output.lin}
@@ -213,11 +212,11 @@ rule get_nt_lineage_from_taxids:
 
 rule intergreted_vir_check:
     input:
-        stat_nt=rules.get_nt_lineage_from_taxids.output.stat,
-        stat=rules.join_blst_tax.output.blst,
-        lineage=rules.complete_taxo.output.lineage
+        stat_nt = rules.get_nt_lineage_from_taxids.output.stat,
+        stat = rules.join_blst_tax.output.blst,
+        lineage = rules.complete_taxo.output.lineage
     output:
-        tmp="tmp/interg_virus_{RUN}.csv"
+        tmp = f"{output_directory}/04_blast_output/interg_virus_{{RUN}}.csv"
     shell:
         """
         awk -F "," ' {{if ($17!="Viruses" && $17!="NA" && $10>25) print $0}}' {input.stat_nt} |sed -e 's/,/\t/g' > {output.tmp}
@@ -225,9 +224,9 @@ rule intergreted_vir_check:
 
 checkpoint split_viral_tax:
     input:
-        taxo=f"Taxonomy/lineage_5_hit_{RUN}_cor.csv" # Here RUN is variable because we haven't RUN in ouput
+        taxo = f"{output_directory}/04_blast_output/02_taxonomy/lineage_5_hit_{RUN}_cor.csv" # Here RUN is variable because we haven't RUN in ouput
     output:
-        directory('split_vir')
+        directory(f"{output_directory}/05_depth/split_vir")
     shell:
         """
         mkdir -p {output}
@@ -236,13 +235,13 @@ checkpoint split_viral_tax:
 
 rule get_host:
     input:
-        acc_ids="split_vir/split.{i}",
-        by_seq=rules.Join_seq_acc_taxo_nr.output.taxo
+        acc_ids = f"{output_directory}/05_depth/split_vir/split.{{i}}",
+        by_seq = rules.Join_seq_acc_taxo_nr.output.taxo
     output:
-        split_host_tax="split_vir/{RUN}_host_tax.{i}.csv"
+        split_host_tax = f"{output_directory}/05_depth/split_vir/{{RUN}}_host_tax.{{i}}.csv"
     params:
-        script=scriptdir + "get_host.py",
-        host_db=scriptdir + "virushostdb1_21.csv"
+        script = f"{scriptdir}get_host.py",
+        host_db = f"{scriptdir}virushostdb1_21.csv"
     shell:
         """
         python {params.script} {input.acc_ids} {input.by_seq} {params.host_db} {output.split_host_tax}
@@ -252,7 +251,7 @@ rule get_host:
 #Flo : test rules.XX in aggregate function ?
 def aggregate_input_host(wildcards):
     checkpoint_output = checkpoints.split_viral_tax.get(**wildcards).output[0]
-    return expand(f"split_vir/{RUN}_host_tax.{{i}}.csv",
+    return expand(f"{output_directory}/05_depth/split_vir/{RUN}_host_tax.{{i}}.csv",
         i=glob_wildcards(os.path.join(checkpoint_output,'split.{i}')).i)
 
 
@@ -260,7 +259,7 @@ rule join_host_tax:
     input:
         aggregate_input_host
     output:
-        host_lineage="results/hosts_lineage_{RUN}.csv"
+        host_lineage=f"{output_directory}/06_final_data/hosts_lineage_{{RUN}}.csv"
     shell:
         """
         echo "tax_id,hosts_taxon,hosts_gb,hosts_tax_id,hosts_superkingdom,hosts_kingdom,hosts_phylum,hosts_class,hosts_order,hosts_family,hosts_subfamily,hosts_genus,hosts_species">{output.host_lineage}
@@ -273,8 +272,7 @@ rule merge_vir_check:
         stat = rules.join_blst_tax.output.blst,
         lineage = rules.complete_taxo.output.lineage
     output:
-        vir_ch="intergreted_vir_check_{RUN}.csv"
-
+        vir_ch = f"{output_directory}/04_blast_output/05_taxonomy_nt/intergreted_vir_check_{{RUN}}.csv"
     shell:
         """
         awk -F',' '{{print $1}}' {input.lineage}| grep -wf - {input.stat} | awk -F"[\t, ]" 'FNR==NR&&NR!=1{{a[$1]="YES"}}  FNR!=NR{{OFS=",";if(FNR!=1){{$(NF+1)=a[$1]}};print}}'  {input.tmp} - |awk -F',' '!$NF {{OFS=","; $NF="NO" }}1' >  {output.vir_ch}
@@ -282,11 +280,11 @@ rule merge_vir_check:
         
 rule log_Quantify_contigs_coverage_raw:
     input:
-        mapped=rules.Quantify_contigs_coverage_raw.output.mapped,
-        Unmapped=rules.Quantify_contigs_coverage_raw.output.Unmapped,
-        viral_cont=rules.extract_viral_ids.output.taxo
+        mapped = rules.Quantify_contigs_coverage_raw.output.mapped,
+        Unmapped = rules.Quantify_contigs_coverage_raw.output.Unmapped,
+        viral_cont = rules.extract_viral_ids.output.taxo
     output:
-        coverage="logs/logs_coverage_raw/{smp}_coverage_{RUN}.txt"
+        coverage = f"{output_directory}/05_depth/{{smp}}_coverage_{{RUN}}.txt"
     shell:
         """
         xargs -I @ grep -w -m 1 @ {input.mapped} | < {input.viral_cont}| awk '{{ sum+=$2 }} END {{print "Mapped:" sum }}' - >> {output.coverage}
