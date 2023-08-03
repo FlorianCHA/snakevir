@@ -39,11 +39,11 @@ rRNA_host: "/shared/ifbstor1/projects/magmax/ASTRE/test_snakevir/test_sub_comman
 
 
 #File joining sequence IDs to taxonomic ids nr
-base_taxo: "/shared/ifbstor1/projects/magmax/ASTRE/test_snakevir/test_sub_command/tools/database//prot.accession2taxid.gz"
+base_taxo: "/shared/ifbstor1/projects/magmax/ASTRE/test_snakevir/test_sub_command/tools/database/prot.accession2taxid.gz"
 #File joining sequence IDs to taxonomic ids nt
-base_taxo: "/shared/ifbstor1/projects/magmax/ASTRE/test_snakevir/test_sub_command/tools/database//prot.accession2taxid.gz"
+base_taxo: "/shared/ifbstor1/projects/magmax/ASTRE/test_snakevir/test_sub_command/tools/database/prot.accession2taxid.gz"
 #File with virus host informations
-host_db: "/shared/ifbstor1/projects/magmax/ASTRE/test_snakevir/test_sub_command/tools/database//virushostdb.tsv"
+host_db: "/shared/ifbstor1/projects/magmax/ASTRE/test_snakevir/test_sub_command/tools/database/virushostdb.tsv"
 
 #Path to external scipts
 Scripts: "/shared/ifbstor1/projects/magmax/ASTRE/test_snakevir/test_sub_command/snakevir/install_files/script"
