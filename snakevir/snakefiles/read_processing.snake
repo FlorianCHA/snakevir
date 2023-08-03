@@ -223,8 +223,8 @@ rule Merge_Pairs_With_Flash:
         flash = scriptdir+"flash"
     output:
         ext = f"{output_directory}/01_read_processing/06_flash_merge_pair/{{smp}}.extendedFrags.fastq",
-        R1 = f"{output_directory}/01_read_processing/06_flash_merge_pair/{{smp}}.notCombined_1.fastq",
-        R2 = f"{output_directory}/01_read_processing/06_flash_merge_pair/{{smp}}.notCombined_2.fastq"
+        R1 = f"{output_directory}/01_read_processing/06_flash_merge_pair/{{smp}}_R1.fastq",
+        R2 = f"{output_directory}/01_read_processing/06_flash_merge_pair/{{smp}}_R2.fastq"
     benchmark:
         f"{output_directory}/benchmarks/{{smp}}.flash_merge.benchmark.txt"
     log:
@@ -240,7 +240,7 @@ rule Concatenate_Widows_And_Merged:
         Merged = rules.Merge_Pairs_With_Flash.output.ext,
         WI = rules.Extract_Unmapped_bact_Reads.output.WI
     output:
-        final = f"{output_directory}/01_read_processing/07_concat_single/{{smp}}_merged_widows.fastq"
+        final = f"{output_directory}/01_read_processing/07_concat_single/{{smp}}_widows.fastq"
     benchmark:
         f"{output_directory}/benchmarks/{{smp}}.concat_single.benchmark.txt"
     shell:
