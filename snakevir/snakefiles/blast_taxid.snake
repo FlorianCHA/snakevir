@@ -94,7 +94,7 @@ rule Count_coverage_raw_nr:
     input:
         count_table = rules.Build_array_coverage_nr.output.by_seq
     output:
-        by_seq = f"{output_directory}/04_blast_output/03_coverage/count_contigs_raw_{RUN}.csv"
+        by_seq = f"{output_directory}/04_blast_output/03_coverage/count_contigs_raw_{{RUN}}.csv"
     params:
         script = f"{scriptdir}build_count_table.py",
         countdir = f"{output_directory}/03_mapping_on_assembly/02_CountsMapping_raw/"
@@ -284,7 +284,7 @@ rule log_Quantify_contigs_coverage_raw:
         Unmapped = rules.Quantify_contigs_coverage_raw.output.Unmapped,
         viral_cont = rules.extract_viral_ids.output.taxo
     output:
-        coverage = f"{output_directory}/05_depth/{{smp}}_coverage_{{RUN}}.txt"
+        coverage = f"{output_directory}/05_depth/{{smp}}_coverage_raw_{{RUN}}.txt"
     shell:
         """
         xargs -I @ grep -w -m 1 @ {input.mapped} | < {input.viral_cont}| awk '{{ sum+=$2 }} END {{print "Mapped:" sum }}' - >> {output.coverage}
