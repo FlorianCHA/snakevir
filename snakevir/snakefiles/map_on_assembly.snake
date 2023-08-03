@@ -6,15 +6,15 @@ rule Map_On_Assembly:
         CONTIGS = rules.Merge_Mega_cap_contigs.output.final_assembly,
         INDEX = rules.Index_Assembly.output.index
     output:
-        raw="MappingOnAssembly/raw_{smp}_on_{RUN}.bam",
-        raw_wi="MappingOnAssembly/raw_wi_{smp}_on_{RUN}.bam",
-        rmdup="MappingOnAssembly/rmdup_{smp}_on_{RUN}.bam",
-        rmdup_wi="MappingOnAssembly/rmdup_wi_{smp}_on_{RUN}.bam",
-        merged="MappingOnAssembly/{smp}_on_{RUN}.bam",
-        mergedraw="MappingOnAssembly/{smp}_raw_on_{RUN}.bam",
-        logs_pair="logs/logsDuplicates/{smp}_duplicates_pairs_{RUN}.txt",
-        logs_wi="logs/logsDuplicates/{smp}_duplicates_wi_{RUN}.txt",
-        logs="logs/{smp}_{RUN}_stats_mapping_assembly.txt"
+        raw = f"{output_directory}/03_mapping_on_assembly/raw_{{smp}}_on_{{RUN}}.bam",
+        raw_wi = f"{output_directory}/03_mapping_on_assembly/raw_wi_{{smp}}_on_{{RUN}}.bam",
+        rmdup=f"{output_directory}/03_mapping_on_assembly/rmdup_{{smp}}_on_{{RUN}}.bam",
+        rmdup_wi=f"{output_directory}/03_mapping_on_assembly/rmdup_wi_{{smp}}_on_{{RUN}}.bam",
+        merged=f"{output_directory}/03_mapping_on_assembly/{{smp}}_on_{{RUN}}.bam",
+        mergedraw=f"{output_directory}/03_mapping_on_assembly/{{smp}}_raw_on_{{RUN}}.bam",
+        logs_pair=f"{output_directory}/logs/03_mapping_on_assembly/{{smp}}_duplicates_pairs_{{RUN}}.txt",
+        logs_wi=f"{output_directory}/logs/03_mapping_on_assembly/{{smp}}_duplicates_wi_{{RUN}}.txt",
+        logs=f"{output_directory}/logs/03_mapping_on_assembly/{{smp}}_{{RUN}}_stats_mapping_assembly.txt"
     threads: threads_Map_On_Assembly
     shell:
         """
@@ -39,8 +39,8 @@ rule get_insert_size_metric:
     input:
         bam = rules.Map_On_Assembly.output.raw
     output:
-        metrics = "logs/insert_size/{smp}_insert_size_metrics_{RUN}.txt",
-        histo = "logs/insert_size/{smp}_insert_size_histo_{RUN}.pdf"
+        metrics = f"{output_directory}/logs/03_mapping_on_assembly/insert_size/{{smp}}_insert_size_metrics_{{RUN}}.txt",
+        histo = f"{output_directory}/logs/03_mapping_on_assembly/{{smp}}_insert_size_histo_{{RUN}}.pdf"
     shell:
         """
         picard  CollectInsertSizeMetrics -M 0.0 -I {input.bam}  -O {output.metrics} -H {output.histo}
@@ -50,8 +50,8 @@ rule Quantify_contigs_coverage_raw:
     input:
         bam = rules.Map_On_Assembly.output.mergedraw
     output:
-        mapped = "CountsMapping_raw/{smp}_raw_counts_contigs_{RUN}.mat",
-        Unmapped = "CountsMapping_raw/{smp}_raw_counts_unmapped_{RUN}.mat"
+        mapped =  f"{output_directory}/04_CountsMapping_raw/{{smp}}_raw_counts_contigs_{{RUN}}.mat",
+        Unmapped =  f"{output_directory}/04_CountsMapping_raw/{{smp}}_raw_counts_unmapped_{{RUN}}.mat"
     shell:
         """
         echo "qseqid "$(basename {input.bam} _raw_on_{RUN}.bam)> {output.mapped}
@@ -64,8 +64,8 @@ rule Quantify_contigs_coverage_rmdup:
     input:
         bam = rules.Map_On_Assembly.output.merged
     output:
-        mapped= "CountsMapping/{smp}_counts_contigs_{RUN}.mat",
-        Unmapped="CountsMapping/{smp}_counts_unmapped_{RUN}.mat"
+        mapped =  f"{output_directory}/05_CountsMapping/{{smp}}_counts_contigs_{{RUN}}.mat",
+        Unmapped = f"{output_directory}/05_CountsMapping/{{smp}}_counts_unmapped_{{RUN}}.mat"
     shell:
         """
         echo "qseqid "$(basename {input} _on_{RUN}.bam)> {output.mapped}
@@ -79,7 +79,7 @@ rule log_Quantify_contigs_coverage:
         mapped = rules.Quantify_contigs_coverage_rmdup.output.mapped,
         Unmapped = rules.Quantify_contigs_coverage_rmdup.output.Unmapped
     output:
-        log = "logs/logs_coverage/{smp}_coverage_{RUN}.txt"
+        log = f"{output_directory}/logs/05_CountsMapping/{{smp}}_coverage_{{RUN}}.txt"
     shell:
         """
         awk '{{ sum+=$2 }} END {{print "Mapped:" sum }}' {input.mapped} >> {output.log}
