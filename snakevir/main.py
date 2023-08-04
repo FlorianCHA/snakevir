@@ -112,11 +112,12 @@ def edit_cluster(partition):
                context_settings=dict(max_content_width=800))
 @click.option('--config', '-c',  type=str, required=True,
               help="Path of config file")
-def run(config):
+@click.argument('other_snakemake_option', nargs=-1, type=click.UNPROCESSED)
+def run(config, other_snakemake_option):
     """
     Run the snbakevir workflow.
     """
-    __run(config)
+    __run(config, other_snakemake_option)
 
 
 if Path(f'{Path(__file__).resolve().parent}/install_files/.install').exists():

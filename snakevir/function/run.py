@@ -66,13 +66,13 @@ def verif_config(config):
             f"ERROR: You'r blast nt database '{blast_nt}' doesn't exist, please check you're path",
             fg='red', bold=True, err=True)
 
-def __run(config):
+def __run(config, add_option):
     """
     Run the snbakevir workflow.
     """
     path_snakevir = Path(__file__).resolve().parent.parent
     verif_config(config)
-    cmd = f"snakemake  -s {path_snakevir}/snakefile --configfile {config} --profile {path_snakevir}/install_files/profile/slurm --cluster {path_snakevir}/install_files/cluster.yaml --show-failed-logs"
+    cmd = f"snakemake  -s {path_snakevir}/snakefile --configfile {config} --profile {path_snakevir}/install_files/profile/slurm --cluster {path_snakevir}/install_files/cluster.yaml --show-failed-logs {add_option}"
     process = subprocess.run(cmd, shell=True, check=False, stdout=sys.stdout, stderr=sys.stderr)
     if int(process.returncode) >= 1:
         raise
