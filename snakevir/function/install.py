@@ -118,17 +118,17 @@ def config_yml(path, database_path, install_path):
     new_config = list()
     with open(f'{install_path}/config.yaml', 'r') as config:
         for line in config:
-            if "rRNA_bact" in line :
+            if "rRNA_bact:" in line :
                 line = f'rRNA_bact: "{database_path}/silva_db/silva_138.1_bacteria.fasta"\n'
-            if "rRNA_host" in line:
+            if "rRNA_host:" in line:
                 line = f'rRNA_host: "{database_path}/silva_db/silva_138.1_insecta.fasta"\n'
-            if "base_taxo" in line:
+            if "base_taxo:" in line:
                 line = f'base_taxo: "{database_path}/prot.accession2taxid.gz"\n'
-            if "base_taxo_nt" in line:
+            if "base_taxo_nt:" in line:
                 line = f'base_taxo_nt: "{database_path}/nucl_gb.accession2taxid.gz"\n'
-            if "host_db" in line:
+            if "host_db:" in line:
                 line = f'host_db: "{database_path}/virushostdb.tsv"\n'
-            if "Scripts" in line:
+            if "Scripts:" in line:
                 line = f'Scripts: "{install_path}/script"\n'
             if "module_file:" in line:
                 line = f'module_file: "{path}/snakevir_module"\n'
@@ -194,10 +194,9 @@ def __install(path, tool, database, skip):
                        'max-status-checks-per-second: 10\n' \
                        'local-cores: 1\n' \
                        'jobs: 200\n' \
-                       'use-envmodules: true' \
+                       'use-envmodules: true\n' \
                        'latency-wait: 1296000\n' \
-                       'printshellcmds: true' \
-                       ''
+                       'printshellcmds: true'
     with open(f'{install_path}/profile/slurm/config.yaml', 'w') as f:
         f.write(add_config_slurm)
 

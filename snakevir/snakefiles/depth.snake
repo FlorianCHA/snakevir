@@ -12,7 +12,7 @@ checkpoint split_contig:
     input:
         blast = rules.extract_viral_ids.output.taxo
     output:
-        directory = directory(f"{output_directory}/05_depth/split_cont_{RUN}")
+        directory = directory(f"{output_directory}/05_depth/split_cont_{{RUN}}")
     shell:
         """
         mkdir -p {output}

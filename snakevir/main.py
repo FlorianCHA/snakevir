@@ -109,7 +109,7 @@ def edit_cluster(partition):
     __edit_cluster(partition)
 
 @click.command("run", short_help=f'Create cluster config file',
-               context_settings=dict(max_content_width=800))
+               context_settings={"ignore_unknown_options": True,"max_content_width" : 800})
 @click.option('--config', '-c',  type=str, required=True,
               help="Path of config file")
 @click.argument('other_snakemake_option', nargs=-1, type=click.UNPROCESSED)

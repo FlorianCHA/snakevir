@@ -80,7 +80,7 @@ rule Build_array_coverage_nr:
     input:
         lin = rules.get_nr_lineage_from_taxids.output.lin
     output:
-        by_seq = f"{output_directory}/04_blast_output/03_coverage/count_table_contigs_{RUN}.csv"
+        by_seq = f"{output_directory}/04_blast_output/03_coverage/count_table_contigs_{{RUN}}.csv"
     params:
         script = f"{scriptdir}build_count_table.py",
         countdir = f"{output_directory}/03_mapping_on_assembly/03_CountsMapping/"
@@ -140,7 +140,7 @@ rule extract_viral_contigs:
         contig = rules.Merge_Mega_cap_contigs.output.final_assembly,
         viral_cont_IDS = rules.extract_viral_ids.output.taxo
     output:
-        viral_cont =  f"{output_directory}/02_assembly_results/{RUN}_viral_contigs.fa"
+        viral_cont =  f"{output_directory}/02_assembly_results/{{RUN}}_viral_contigs.fa"
     shell:
         """
         perl -ne 'if(/^>(\S+)/){{$c=$i{{$1}}}}$c?print:chomp;$i{{$_}}=1 if @ARGV' {input.viral_cont_IDS} {input.contig} > {output.viral_cont};
@@ -162,9 +162,9 @@ rule Blast_contigs_on_nt:
 
 rule extract_seq_acc:
     input:
-        blast_resul = rules.Blast_contigs_on_nt.output.blast
+        blast_result = rules.Blast_contigs_on_nt.output.blast
     output:
-        temp = f"{output_directory}/04_blast_output/04_blast_nt_results/Contigs_{{RUN}}.blast_nt_results.tsv"
+        temp = f"{output_directory}/04_blast_output/04_blast_nt_results/Contigs_{{RUN}}.blast_nt_results_tmp.tsv"
     shell:
         """
         awk -F'|' '{{print $1,$(NF-1)}}' {input.blast_result} | awk '{{$2="";print}}'| awk  '{{$2=substr($2,1, length($2)-2);print}}'| sort -u -k1,1 | sed 's/ /\t/g' |tee {output.temp} | awk '{{print $2}}' >  "tmp/sseq_ids.txt";
