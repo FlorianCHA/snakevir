@@ -18,7 +18,7 @@ About Snakevir
 Snakevir is a workflow developed in snakemake that enables viral metagenomic analysis of short-read data. You can give your own parameters/database in the config.yaml file to customize the workflow for your own data.
 
 Authors
-_______
+======
 
 * Florian CHARRIAT (CIRAD)
 * Antoni Exbrayat (CIRAD)
