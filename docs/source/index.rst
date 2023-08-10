@@ -2,8 +2,8 @@ Welcome to Snakevir's documentation!
 =====================================
 
 
-.. image:: _images/snakevir_logo.png
-   :target: _images/snakevir_logo.png
+.. image:: _images/snakevir_logo_title.png
+   :target: _images/snakevir_logo_title.png
    :align: center
    :alt: Snakevir Logo
 
