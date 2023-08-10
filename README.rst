@@ -49,6 +49,6 @@ Intellectual property belongs to `CIRAD <https://www.cirad.fr/>`_ and authors.
    :target: https://culebront-pipeline.readthedocs.io/en/latest/
    :width: 400px
 
-.. |Downloads| image:: https://img.shields.io/badge/pypi-Snakevir
+.. |Downloads| image:: https://img.shields.io/badge/pypi-Snakevir-purple
    :target: https://pypi.org/project/snakevir
    :alt: PyPi downloads
