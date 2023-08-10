@@ -13,7 +13,7 @@ About Snakevir
 
 |readthedocs|
 
-**Homepage:** `https://snakevir.readthedocs.io/en/latest/>`_
+**Homepage:**`https://snakevir.readthedocs.io/en/latest/ <https://snakevir.readthedocs.io/en/latest/index.html>`_
 
 Snakevir is a workflow developed in snakemake that enables viral metagenomic analysis of short-read data. You can give your own parameters/database in the config.yaml file to customize the workflow for your own data.
 
