@@ -5,9 +5,6 @@
 
 |PythonVersions| |SnakemakeVersions| |Downloads|
 
-.. contents:: Table of Contents
-    :depth: 2
-
 About Snakevir
 ===============
 
