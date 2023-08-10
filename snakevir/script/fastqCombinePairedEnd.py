@@ -26,16 +26,15 @@ import sys
 try:
     in1 = sys.argv[1]
     in2 = sys.argv[2]
+    out_1 = sys.argv[3]
+    out_2 = sys.argv[4]
+    out_S = sys.argv[5]
+
 except:
     print(__doc__)
     sys.exit(1)
 
-try:
-    separator = sys.argv[3]
-    if separator == "None":
-        separator = None
-except:
-    separator = " "
+separator = " "
 
 # Defining classes
 class Fastq(object):
@@ -98,9 +97,9 @@ if __name__ == "__main__":
     else:
     	outSuffix='.fastq'
     	
-    with myopen(in1 + "_pairs_R1" + outSuffix, "wt") as out1:
-        with myopen(in2 + "_pairs_R2" + outSuffix, "wt") as out2:
-            with myopen(in1 + "_singles" + outSuffix, "wt") as out3:
+    with myopen(out_1, "wt") as out1:
+        with myopen(out_2, "wt") as out2:
+            with myopen(out_S, "wt") as out3:
                 while not (s1_finished and s2_finished):
                     try:
                         s1 = next(seq1)

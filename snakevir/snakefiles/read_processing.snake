@@ -49,7 +49,7 @@ rule Repair_Pairs:
         f"{output_directory}/benchmarks/{{smp}}.repair_pairs.benchmark.txt"
     shell:
         """
-        python2 {params} {input.R1} {input.R2}  2> {log}
+        python2 {params} {input.R1} {input.R2} {output.R1} {output.R2} {output.WI} 2> {log}
         """
 
  # Host-homologous sequence cleaning by mapping (bwa) on ribosomal sequences.
@@ -219,7 +219,8 @@ rule Merge_Pairs_With_Flash:
         pairs_R1 = rules.Extract_Unmapped_host_Reads.output.pairs_R1,
         pairs_R2 = rules.Extract_Unmapped_host_Reads.output.pairs_R2
     params:
-        prefix = f"{output_directory}/01_read_processing/06_flash_merge_pair/{{smp}}",
+        directory = f"{output_directory}/01_read_processing/06_flash_merge_pair/"
+        prefix = f"{{smp}}",
         flash = scriptdir+"flash"
     output:
         ext = f"{output_directory}/01_read_processing/06_flash_merge_pair/{{smp}}.extendedFrags.fastq",
@@ -228,10 +229,10 @@ rule Merge_Pairs_With_Flash:
     benchmark:
         f"{output_directory}/benchmarks/{{smp}}.flash_merge.benchmark.txt"
     log:
-        f"{output_directory}/logs/01_read_processing/06_flash_merge_pair/{{smp}}_flash.log"
+        f"{output_directory}/logs/01_read_processing/06_flash_merge_pair/{{smp}}q_flash.log"
     shell:
         """
-        flash -M 250 {input.pairs_R1} {input.pairs_R2} -o {params.prefix} &> {log}
+        flash -M 250 {input.pairs_R1} {input.pairs_R2} -d {params.directory} -o {params.prefix} &> {log}
         """
 
 # Create a single file for merge and windows reads

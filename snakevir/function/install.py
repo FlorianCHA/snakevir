@@ -129,7 +129,7 @@ def config_yml(path, database_path, install_path):
             if "host_db:" in line:
                 line = f'host_db: "{database_path}/virushostdb.tsv"\n'
             if "Scripts:" in line:
-                line = f'Scripts: "{install_path}/script"\n'
+                line = f'Scripts: "{Path(__file__).resolve().parent.parent}/script/"\n'
             if "module_file:" in line:
                 line = f'module_file: "{path}/snakevir_module"\n'
             new_config.append(line)
@@ -145,9 +145,9 @@ def module_file(path,install_path):
     with open(f'{install_path}/snakevir_module','r') as module_file:
         for line in module_file:
             if "prepend-path PATH" in line:
-                line = f"prepend-path PATH {path}/snakevir_env/bin"
+                line = f"prepend-path PATH {path}/snakevir_env/bin\n"
             if "prepend-path LD_LIBRARY_PATH" in line:
-                line = f"prepend-path LD_LIBRARY_PATH {path}/snakevir_env/lib"
+                line = f"prepend-path LD_LIBRARY_PATH {path}/snakevir_env/lib\n"
             if "prepend-path CPATH" in line:
                 line = f"prepend-path CPATH {path}/snakevir_env/include"
             new_module.append(line)

@@ -18,7 +18,7 @@ def __edit_cluster(partition):
         new_cluster = list()
         with open(f'{install_path}/cluster.yaml', 'r') as cluster_file:
             for line in cluster_file:
-                if line.strip().startswith("queue:"):
+                if line.strip().startswith("partition:"):
                     old_partition = line.strip().split(':')[-1].strip()
                     line = line.replace(old_partition,partition)
                 new_cluster.append(line)
