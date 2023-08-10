@@ -3,12 +3,6 @@
    :align: center
    :alt: Snakevir Logo
 
-To write
-
-.. contents:: Table of Contents
-   :depth: 2
-   :backlinks: entry
-
 
 Viral metagenomics analyses
 ---------------------------
