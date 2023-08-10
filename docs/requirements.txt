@@ -8,4 +8,4 @@ sphinx_copybutton
 snakemake
 sphinx-click@git+https://github.com/TomerGodinger/sphinx-click.git@new-features
 sphinx_design
-.
+snakevir
