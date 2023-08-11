@@ -86,40 +86,7 @@ If you installed snakevir and create the config file, you can now run:
 Output on Snakevir
 ===================
 
-To modify.
-
-.. code-block:: bash
-
-    OUTPUT_CULEBRONT_CIRCULAR/
-    ├── SAMPLE-1
-    │   ├── AGGREGATED_QC
-    │   │   ├── DATA
-    │   │   ├── MAUVE_ALIGN
-    │   │   └── QUAST_RESULTS
-    │   ├── ASSEMBLERS
-    │   │   ├── CANU
-    │   │   │   ├── ASSEMBLER
-    │   │   │   ├── CORRECTION
-    │   │   │   ├── FIXSTART
-    │   │   │   ├── POLISHING
-    │   │   │   └── QUALITY
-    │   │   ├── FLYE
-    │   │   │   ├── ...
-    │   │   ├── MINIASM
-    │   │   │   ├── ...
-    │   │   ├── RAVEN
-    │   │   │   ├── ...
-    │   │   ├── SHASTA
-    │   │   │   ├── ...
-    │   │   └── SMARTDENOVO
-    │   │   │   ├── ...
-    │   ├── DIVERS
-    │   │   └── FASTQ2FASTA
-    │   ├── LOGS
-    │   └── REPORT
-    └── FINAL_REPORT
-    ├── SAMPLE-2 ...
-
+To Add.
 
 Report
 ======
