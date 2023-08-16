@@ -219,13 +219,13 @@ rule Merge_Pairs_With_Flash:
         pairs_R1 = rules.Extract_Unmapped_host_Reads.output.pairs_R1,
         pairs_R2 = rules.Extract_Unmapped_host_Reads.output.pairs_R2
     params:
-        directory = f"{output_directory}/01_read_processing/06_flash_merge_pair/"
+        directory = f"{output_directory}/01_read_processing/06_flash_merge_pair/",
         prefix = f"{{smp}}",
         flash = scriptdir+"flash"
     output:
         ext = f"{output_directory}/01_read_processing/06_flash_merge_pair/{{smp}}.extendedFrags.fastq",
-        R1 = f"{output_directory}/01_read_processing/06_flash_merge_pair/{{smp}}_R1.fastq",
-        R2 = f"{output_directory}/01_read_processing/06_flash_merge_pair/{{smp}}_R2.fastq"
+        R1 = f"{output_directory}/01_read_processing/06_flash_merge_pair/{{smp}}.notCombined_1.fastq",
+        R2 = f"{output_directory}/01_read_processing/06_flash_merge_pair/{{smp}}.notCombined_2.fastq"
     benchmark:
         f"{output_directory}/benchmarks/{{smp}}.flash_merge.benchmark.txt"
     log:

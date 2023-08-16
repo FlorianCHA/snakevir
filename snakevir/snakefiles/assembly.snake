@@ -1,15 +1,16 @@
-R1list=expand(f"{output_directory}/01_read_processing/06_flash_merge_pair/{{smp}}_R1.fastq",smp=SAMPLES)
-R2list=expand(f"{output_directory}/01_read_processing/06_flash_merge_pair/{{smp}}_R2.fastq",smp=SAMPLES)
+R1list=expand(f"{output_directory}/01_read_processing/06_flash_merge_pair/{{smp}}.notCombined_1.fastq",smp=SAMPLES)
+R2list=expand(f"{output_directory}/01_read_processing/06_flash_merge_pair/{{smp}}.notCombined_2.fastq",smp=SAMPLES)
 PElist=expand(f"{output_directory}/01_read_processing/07_concat_single/{{smp}}_widows.fastq",smp=SAMPLES)
 
 
 rule Megahit_Assembly:
     input:
-        R1s = expand(f"{output_directory}/01_read_processing/06_flash_merge_pair/{{smp}}_R1.fastq",smp=SAMPLES),
-        R2s = expand(f"{output_directory}/01_read_processing/06_flash_merge_pair/{{smp}}_R2.fastq",smp=SAMPLES),
+        R1s = expand(f"{output_directory}/01_read_processing/06_flash_merge_pair/{{smp}}.notCombined_1.fastq",smp=SAMPLES),
+        R2s = expand(f"{output_directory}/01_read_processing/06_flash_merge_pair/{{smp}}.notCombined_2.fastq",smp=SAMPLES),
         PEs = expand(f"{output_directory}/01_read_processing/07_concat_single/{{smp}}_widows.fastq",smp=SAMPLES)
     params:
-        prefix="Assembly_results",
+        prefix=f"{output_directory}/02_assembly_results",
+        tmp=f"{output_directory}/02_assembly_results_tmp",
         commaR1s = ",".join(R1list),
         commaR2s = ",".join(R2list),
         commaPEs = ",".join(PElist)
@@ -20,10 +21,9 @@ rule Megahit_Assembly:
     threads: threads_Megahit_Assembly
     shell:
         """
-        touch Assembly_results/{wildcards.RUN}.contigs.fa
-        megahit -t {threads}  --mem-flag 2 -m 1 -1 {params.commaR1s} -2 {params.commaR2s} -r {params.commaPEs} -o Assembly_results_tmp --out-prefix {wildcards.RUN} --continue  2> {log}
-        rm -r Assembly_results
-        mv Assembly_results_tmp Assembly_results
+        if [ -e {params.tmp} ]; then rm -rf {params.tmp}; fi 
+        megahit -t {threads}  --mem-flag 2 -m 1 -1 {params.commaR1s} -2 {params.commaR2s} -r {params.commaPEs} -o {params.tmp} --out-prefix {wildcards.RUN} --continue  2> {log}
+        rm -rf {params.prefix}; mv {params.tmp} {params.prefix}
         """
 
 rule Cap3_Assembly:
