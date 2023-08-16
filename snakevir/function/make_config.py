@@ -19,7 +19,7 @@ def __make_config(name, fastq, r1, r2, ext, path_diamond_nr, path_blast_nt, a3, 
             if line.startswith("fastq:"):
                 line = f"fastq: {fastq}\n"
             if line.startswith("host_genome:"):
-                line = f"A5: {host_genome}\n"
+                line = f"host_genome: {host_genome}\n"
             if line.startswith("ext_R1:"):
                 line = f"ext_R1: {r1}\n"
             if line.startswith("ext_R2:"):

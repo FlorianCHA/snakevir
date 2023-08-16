@@ -95,7 +95,7 @@ def install_database(path, database_path, install_path, database, skip):
         list_skip.append(download(f'{database_path}virushostdb.tsv', command, database, skip))
         # Prepare silva database
         command = f'echo "\n\t* Extract Archive";' \
-                  f'wget https://github.com/FlorianCHA/snakevir/raw/master/install_files/silva_db.tar.gz -O {database_path}silva_db.tar.gz;' \
+                  f'wget https://github.com/FlorianCHA/snakevir/raw/master/snakevir/install_files/silva_db.tar.gz -O {database_path}silva_db.tar.gz;' \
                   f'tar zxvf {database_path}silva_db.tar.gz -C {database_path} > stdout;' \
                   f'gunzip {database_path}silva_db/*.fasta.gz;' \
                   f'echo "\t* Create index for bwa tools";' \
