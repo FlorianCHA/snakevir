@@ -1,12 +1,12 @@
-R1list=expand(f"{output_directory}/01_read_processing/06_flash_merge_pair/{{smp}}.notCombined_1.fastq",smp=SAMPLES)
-R2list=expand(f"{output_directory}/01_read_processing/06_flash_merge_pair/{{smp}}.notCombined_2.fastq",smp=SAMPLES)
+R1list=expand(f"{output_directory}/01_read_processing/07_flash_merge_pair/{{smp}}.notCombined_1.fastq",smp=SAMPLES)
+R2list=expand(f"{output_directory}/01_read_processing/07_flash_merge_pair/{{smp}}.notCombined_2.fastq",smp=SAMPLES)
 PElist=expand(f"{output_directory}/01_read_processing/07_concat_single/{{smp}}_widows.fastq",smp=SAMPLES)
 
 
 rule Megahit_Assembly:
     input:
-        R1s = expand(f"{output_directory}/01_read_processing/06_flash_merge_pair/{{smp}}.notCombined_1.fastq",smp=SAMPLES),
-        R2s = expand(f"{output_directory}/01_read_processing/06_flash_merge_pair/{{smp}}.notCombined_2.fastq",smp=SAMPLES),
+        R1s = expand(f"{output_directory}/01_read_processing/07_flash_merge_pair/{{smp}}.notCombined_1.fastq",smp=SAMPLES),
+        R2s = expand(f"{output_directory}/01_read_processing/07_flash_merge_pair/{{smp}}.notCombined_2.fastq",smp=SAMPLES),
         PEs = expand(f"{output_directory}/01_read_processing/07_concat_single/{{smp}}_widows.fastq",smp=SAMPLES)
     params:
         prefix=f"{output_directory}/02_assembly_results",

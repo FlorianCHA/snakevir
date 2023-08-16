@@ -6,6 +6,8 @@ run: "RUN_NAME"
 fastq: "/PATH/TO/FASTQ/DIRECTORY/"
 # path to output directory
 output: "/PATH/TO/FASTQ/DIRECTORY/"
+# path to host genome fasta file
+host_genome: "/PATH/TO/FASTA/GENOME/"
 # Indicate how the reads are named (ex:_R1 , _R2 or _001_R1 , _001_R2)
 ext_R1: "_1"
 ext_R2: "_2"

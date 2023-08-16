@@ -192,6 +192,78 @@ rule Extract_Unmapped_bact_Reads:
         fi
         """
 
+rule bwa_index:
+    threads: 4
+    input:
+        reference_genome = config["host_genome"]
+    output:
+        index = f'{config["host_genome"]}.bwt'
+    log:
+        f"{output_directory}/logs/01_read_processing/06_filtered_fastq_host_genome_mapping/{{smp}}_host_genome_index.log"
+    shell:
+        """
+        bwa index {input.reference_genome} 2> {log}
+        """
+
+rule bwa_genome_host_mapping:
+    threads: 4
+    input:
+        reference_genome = rules.bwa_index.output.index,
+        R1 = rules.Extract_Unmapped_bact_Reads.output.pairs_R1,
+        R2 = rules.Extract_Unmapped_bact_Reads.output.pairs_R2,
+        WI = rules.Extract_Unmapped_bact_Reads.output.WI
+    output:
+        mapped_sam = f"{output_directory}/01_read_processing/06_filtered_fastq_host_genome_mapping/filtered_bacteria_{{smp}}.sam",
+        WI_sam = f"{output_directory}/01_read_processing/06_filtered_fastq_host_genome_mapping/filtered_bacteria_{{smp}}widows.sam"
+    log:
+        f"{output_directory}/logs/01_read_processing/06_filtered_fastq_host_genome_mapping/{{smp}}_host_genome_mapping.log"
+    shell:
+        """
+        if [ -s {input.pairs_R1} ] && [ -s {input.pairs_R2} ]
+        then
+            bwa mem -t {threads} {input.reference_genome} {input.R1} {input.R2} 2> {log} | samtools view -f 0x4 -> {output.mapped_sam}
+        else
+            echo "{input.pairs_R1} or {input.pairs_R2} is empty."
+            touch {output.bam_pairs}
+        fi
+
+        if [ -s {input.WI} ]
+        then
+        bwa mem -t {threads} {input.reference_genome} {input.WI} 2> {log} | samtools view -b -  | samtools view -f 0x4 -> {output.WI_sam}
+        else
+            echo "{input.WI} is empty."
+            touch {output.WI_sam}
+        fi
+        """
+
+rule Extract_Unmapped_genome_host_Reads:
+    input:
+        sam_pairs = rules.bwa_genome_host_mapping.output.mapped_sam,
+        sam_WI =  rules.bwa_genome_host_mapping.output.WI_sam
+    output:
+        new_R1 =  f"{output_directory}/01_read_processing/06_filtered_fastq_host_genome_mapping/filtered_bacteria_{{smp}}_R1.fastq",
+        new_R2 =  f"{output_directory}/01_read_processing/06_filtered_fastq_host_genome_mapping/filtered_bacteria_{{smp}}_R2.fastq",
+        WI= f"{output_directory}/01_read_processing/06_filtered_fastq_host_genome_mapping/filtered_bacteria_{{smp}}_widows.fastq"
+    benchmark:
+        f"{output_directory}/benchmarks/{{smp}}.filtered_fastq_genome_host_mapping.benchmark.txt"
+    shell:
+        """
+        if [ -s {input.sam_pairs} ]
+        then
+            picard  SamToFastq VALIDATION_STRINGENCY=SILENT I={input.sam_pairs} F={output.new_R1} F2={output.new_R2}
+        else
+            echo "{input.sam_pairs} is empty."
+            touch {output.pairs_R1}
+            touch {output.pairs_R2}
+        fi
+        if [ -s {input.sam_WI} ]
+        then
+            picard SamToFastq  VALIDATION_STRINGENCY=SILENT I={input.sam_WI} F={output.WI}
+        else
+            echo "{input.sam_WI} is empty."
+            touch {output.WI}
+        fi
+        """
  # Extract some stats (logs) from the cleaning steps
 rule log_map_conta:
     input:
@@ -200,7 +272,10 @@ rule log_map_conta:
         host_WI = rules.Extract_Unmapped_host_Reads.output.WI,
         bact_pairs_R1 = rules.Extract_Unmapped_bact_Reads.output.pairs_R1,
         bact_pairs_R2 = rules.Extract_Unmapped_bact_Reads.output.pairs_R2,
-        bact_WI = rules.Extract_Unmapped_bact_Reads.output.WI
+        bact_WI = rules.Extract_Unmapped_bact_Reads.output.WI,
+        genome_host_R1= rules.Extract_Unmapped_genome_host_Reads.output.pairs_R1,
+        genome_host_R2= rules.Extract_Unmapped_genome_host_Reads.output.pairs_R2,
+        genome_host_WI= rules.Extract_Unmapped_genome_host_Reads.output.WI
     output:
         stat_conta = f"{output_directory}/logs/01_read_processing/Stats_contaminent_{{smp}}.txt"
     shell:
@@ -211,25 +286,27 @@ rule log_map_conta:
         awk '{{s++}}END{{print "bact_pair_R1 : " s/4}}' {input.bact_pairs_R1} >> {output.stat_conta};
         awk '{{s++}}END{{print "bact_pairs_R2 : " s/4}}' {input.bact_pairs_R2} >> {output.stat_conta};
         awk '{{s++}}END{{print "bact_pair_wi : " s/4}}' {input.bact_WI} >> {output.stat_conta};
+        awk '{{s++}}END{{print "bact_pairs_R2 : " s/4}}' {input.genome_host_R2} >> {output.stat_conta};
+        awk '{{s++}}END{{print "bact_pair_wi : " s/4}}' {input.genome_host_WI} >> {output.stat_conta};
         """
 
 # Merge paired-end reads , 3 files where created on with de merde pairs and two for the unmerged R1 and R2
 rule Merge_Pairs_With_Flash:
     input:
-        pairs_R1 = rules.Extract_Unmapped_host_Reads.output.pairs_R1,
-        pairs_R2 = rules.Extract_Unmapped_host_Reads.output.pairs_R2
+        pairs_R1 = rules.Extract_Unmapped_genome_host_Reads.output.pairs_R1,
+        pairs_R2 = rules.Extract_Unmapped_genome_host_Reads.output.pairs_R2
     params:
         directory = f"{output_directory}/01_read_processing/06_flash_merge_pair/",
         prefix = f"{{smp}}",
         flash = scriptdir+"flash"
     output:
-        ext = f"{output_directory}/01_read_processing/06_flash_merge_pair/{{smp}}.extendedFrags.fastq",
-        R1 = f"{output_directory}/01_read_processing/06_flash_merge_pair/{{smp}}.notCombined_1.fastq",
-        R2 = f"{output_directory}/01_read_processing/06_flash_merge_pair/{{smp}}.notCombined_2.fastq"
+        ext = f"{output_directory}/01_read_processing/07_flash_merge_pair/{{smp}}.extendedFrags.fastq",
+        R1 = f"{output_directory}/01_read_processing/07_flash_merge_pair/{{smp}}.notCombined_1.fastq",
+        R2 = f"{output_directory}/01_read_processing/07_flash_merge_pair/{{smp}}.notCombined_2.fastq"
     benchmark:
         f"{output_directory}/benchmarks/{{smp}}.flash_merge.benchmark.txt"
     log:
-        f"{output_directory}/logs/01_read_processing/06_flash_merge_pair/{{smp}}q_flash.log"
+        f"{output_directory}/logs/01_read_processing/07_flash_merge_pair/{{smp}}q_flash.log"
     shell:
         """
         flash -M 250 {input.pairs_R1} {input.pairs_R2} -d {params.directory} -o {params.prefix} &> {log}
@@ -239,9 +316,9 @@ rule Merge_Pairs_With_Flash:
 rule Concatenate_Widows_And_Merged:
     input:
         Merged = rules.Merge_Pairs_With_Flash.output.ext,
-        WI = rules.Extract_Unmapped_bact_Reads.output.WI
+        WI = rules.Extract_Unmapped_genome_host_Reads.output.WI
     output:
-        final = f"{output_directory}/01_read_processing/07_concat_single/{{smp}}_widows.fastq"
+        final = f"{output_directory}/01_read_processing/08_concat_single/{{smp}}_widows.fastq"
     benchmark:
         f"{output_directory}/benchmarks/{{smp}}.concat_single.benchmark.txt"
     shell:

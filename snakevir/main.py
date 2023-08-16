@@ -74,6 +74,8 @@ click.rich_click.OPTION_GROUPS = {
               help="Name of run (ex : HNXXXXXX)")
 @click.option('--fastq', '-f',  default="/PATH/TO/FASTQ/DIRECTORY/", type=click.Path(resolve_path=True),
               help="Path to the fastq directory")
+@click.option('--host_genome', '-g',  default="/PATH/TO/FASTA/GENOME/", type=click.Path(resolve_path=True),
+              help="Path to the fastq directory")
 @click.option('--r1', default="_1", show_default=True,
               help="Type of your R1 fastq files contains in FASTQ directory (for exemple : '_R1' or '_1', etc. )")
 @click.option('--r2', default="_2", show_default=True,
