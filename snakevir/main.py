@@ -54,7 +54,7 @@ click.rich_click.OPTION_GROUPS = {
         },
         {
             "name": "PATH options",
-            "options": ["--fastq", "--path_diamond_nr", "--path_blast_nt"],
+            "options": ["--fastq", "--path_diamond_nr", "--path_blast_nt", "--host_genome"],
         },
         {
             "name": "Advanced options",
@@ -90,13 +90,13 @@ click.rich_click.OPTION_GROUPS = {
               help="Sequence of Adapter in 3'")
 @click.option('--A5', default="CATCACATAGGCGTCCGCTG", show_default=True,
               help="Sequence of Adapter in 5'")
-def make_config(name, fastq, r1, r2, ext, path_diamond_nr, path_blast_nt, a3, a5, output):
+def make_config(name, fastq, r1, r2, ext, path_diamond_nr, path_blast_nt, a3, a5, output, host_genome):
     """
     The command make_config is used for create config fime at yaml format for snakevir. You have 2 choice, you can use arguement
     for write all information needed in config or you can only use some argument (-o is mandatory) and wirte in the file after
     the missing information.
     """
-    __make_config(name, fastq, r1, r2, ext, path_diamond_nr, path_blast_nt, a3, a5, output)
+    __make_config(name, fastq, r1, r2, ext, path_diamond_nr, path_blast_nt, a3, a5, output, host_genome)
 
 @click.command("edit_cluster", short_help=f'Create cluster config file',
                context_settings=dict(max_content_width=800))
