@@ -119,15 +119,15 @@ def config_yml(path, database_path, install_path):
     with open(f'{install_path}/config.yaml', 'r') as config:
         for line in config:
             if "rRNA_bact:" in line :
-                line = f'rRNA_bact: "{database_path}/silva_db/silva_138.1_bacteria.fasta"\n'
+                line = f'rRNA_bact: "{database_path}silva_db/silva_138.1_bacteria.fasta"\n'
             if "rRNA_host:" in line:
-                line = f'rRNA_host: "{database_path}/silva_db/silva_138.1_insecta.fasta"\n'
+                line = f'rRNA_host: "{database_path}silva_db/silva_138.1_insecta.fasta"\n'
             if "base_taxo:" in line:
-                line = f'base_taxo: "{database_path}/prot.accession2taxid.gz"\n'
+                line = f'base_taxo: "{database_path}prot.accession2taxid.gz"\n'
             if "base_taxo_nt:" in line:
-                line = f'base_taxo_nt: "{database_path}/nucl_gb.accession2taxid.gz"\n'
+                line = f'base_taxo_nt: "{database_path}nucl_gb.accession2taxid.gz"\n'
             if "host_db:" in line:
-                line = f'host_db: "{database_path}/virushostdb.tsv"\n'
+                line = f'host_db: "{database_path}virushostdb.tsv"\n'
             if "Scripts:" in line:
                 line = f'Scripts: "{Path(__file__).resolve().parent.parent}/script/"\n'
             if "module_file:" in line:
