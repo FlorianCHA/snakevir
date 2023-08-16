@@ -35,20 +35,20 @@ base_nt: "/PATH/TO/NT/DATABASXE"
 
 # Path to host sequences
 # Bacterial Ribosomal RNA sequence without duplicates from silva database
-rRNA_bact: "/shared/ifbstor1/projects/magmax/ASTRE/test_snakevir/test_sub_command/tools/database//silva_db/silva_138.1_bacteria.fasta"
+rRNA_bact: "/lustre/charriatf/test_HN175802/tools_snakevir/database//silva_db/silva_138.1_bacteria.fasta"
 # Dipetera Ribosomal RNA sequence from silva database without sequence with viral homology (blastn against ntvir)
-rRNA_host: "/shared/ifbstor1/projects/magmax/ASTRE/test_snakevir/test_sub_command/tools/database//silva_db/silva_138.1_insecta.fasta"
+rRNA_host: "/lustre/charriatf/test_HN175802/tools_snakevir/database//silva_db/silva_138.1_insecta.fasta"
 
 
 #File joining sequence IDs to taxonomic ids nr
-base_taxo: "/shared/ifbstor1/projects/magmax/ASTRE/test_snakevir/test_sub_command/tools/database/prot.accession2taxid.gz"
+base_taxo: "/lustre/charriatf/test_HN175802/tools_snakevir/database//prot.accession2taxid.gz"
 #File joining sequence IDs to taxonomic ids nt
-base_taxo_nt: "/shared/ifbstor1/projects/magmax/ASTRE/test_snakevir/test_sub_command/tools/database/prot.accession2taxid.gz"
+base_taxo_nt: "/lustre/charriatf/test_HN175802/tools_snakevir/database//nucl_gb.accession2taxid.gz"
 #File with virus host informations
-host_db: "/shared/ifbstor1/projects/magmax/ASTRE/test_snakevir/test_sub_command/tools/database/virushostdb.tsv"
+host_db: "/lustre/charriatf/test_HN175802/tools_snakevir/database//virushostdb.tsv"
 
 #Path to external scipts
-Scripts: "/shared/ifbstor1/projects/magmax/ASTRE/test_snakevir/test_sub_command/snakevir/install_files/script"
+Scripts: "/lustre/charriatf/test_HN175802/snakevir/snakevir/script/"
 
 #Path to module file for tools
-module_file:"/shared/ifbstor1/projects/magmax/ASTRE/test_snakevir/test_sub_command/tools/snakevir_module"
+module_file: "/lustre/charriatf/test_HN175802/tools_snakevir/snakevir_module"
