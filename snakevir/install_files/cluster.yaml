@@ -17,7 +17,6 @@ Map_On_host:
   partition: agap_long
   cpus-per-task: '4'
   mem: 20G
-  log: "/dev/null"
   
 Map_On_bacteria:
   partition: agap_long
