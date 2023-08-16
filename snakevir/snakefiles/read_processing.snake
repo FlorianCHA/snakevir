@@ -197,7 +197,7 @@ rule bwa_index:
     input:
         reference_genome = config["host_genome"]
     output:
-        index = f'{config["host_genome"]}.bwt'
+        index = f'{config["host_genome"]}.amb'
     log:
         f"{output_directory}/logs/01_read_processing/06_filtered_fastq_host_genome_mapping/host_genome_index.log"
     shell:
