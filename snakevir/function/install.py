@@ -87,11 +87,11 @@ def install_database(path, database_path, install_path, database, skip):
         ## for nucleotide
         command = f'wget ftp://ftp.ncbi.nlm.nih.gov/pub/taxonomy/accession2taxid/nucl_gb.accession2taxid.gz -O {database_path}nucl_gb.accession2taxid.gz;' \
                   f'gunzip {database_path}nucl_gb.accession2taxid.gz'
-        list_skip.append(download(f'{database_path}nucl_gb.accession2taxid.gz',command, database, skip))
+        list_skip.append(download(f'{database_path}nucl_gb.accession2taxid',command, database, skip))
         ## for portein
         command = f'wget ftp://ftp.ncbi.nlm.nih.gov/pub/taxonomy/accession2taxid/prot.accession2taxid.gz -O {database_path}prot.accession2taxid.gz;' \
                   f'gunzip {database_path}prot.accession2taxid.gz'
-        list_skip.append(download(f'{database_path}prot.accession2taxid.gz', command, database, skip))
+        list_skip.append(download(f'{database_path}prot.accession2taxid', command, database, skip))
         # Donwload virust host database
         command = f'wget https://www.genome.jp/ftp/db/virushostdb/virushostdb.tsv -O {database_path}virushostdb.tsv'
         list_skip.append(download(f'{database_path}virushostdb.tsv', command, database, skip))
@@ -125,9 +125,9 @@ def config_yml(path, database_path, install_path):
             if "rRNA_host:" in line:
                 line = f'rRNA_host: "{database_path}silva_db/silva_138.1_insecta.fasta"\n'
             if "base_taxo:" in line:
-                line = f'base_taxo: "{database_path}prot.accession2taxid.gz"\n'
+                line = f'base_taxo: "{database_path}prot.accession2taxid"\n'
             if "base_taxo_nt:" in line:
-                line = f'base_taxo_nt: "{database_path}nucl_gb.accession2taxid.gz"\n'
+                line = f'base_taxo_nt: "{database_path}nucl_gb.accession2taxid"\n'
             if "host_db:" in line:
                 line = f'host_db: "{database_path}virushostdb.tsv"\n'
             if "Scripts:" in line:
