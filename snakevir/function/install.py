@@ -85,10 +85,12 @@ def install_database(path, database_path, install_path, database, skip):
         # Download accession2taxid
         list_skip = list() # Init list which contain all fils skiped
         ## for nucleotide
-        command = f'wget ftp://ftp.ncbi.nlm.nih.gov/pub/taxonomy/accession2taxid/nucl_gb.accession2taxid.gz -O {database_path}nucl_gb.accession2taxid.gz'
+        command = f'wget ftp://ftp.ncbi.nlm.nih.gov/pub/taxonomy/accession2taxid/nucl_gb.accession2taxid.gz -O {database_path}nucl_gb.accession2taxid.gz;' \
+                  f'gunzip {database_path}nucl_gb.accession2taxid.gz'
         list_skip.append(download(f'{database_path}nucl_gb.accession2taxid.gz',command, database, skip))
         ## for portein
-        command = f'wget ftp://ftp.ncbi.nlm.nih.gov/pub/taxonomy/accession2taxid/prot.accession2taxid.gz -O {database_path}prot.accession2taxid.gz'
+        command = f'wget ftp://ftp.ncbi.nlm.nih.gov/pub/taxonomy/accession2taxid/prot.accession2taxid.gz -O {database_path}prot.accession2taxid.gz;' \
+                  f'gunzip {database_path}prot.accession2taxid.gz'
         list_skip.append(download(f'{database_path}prot.accession2taxid.gz', command, database, skip))
         # Donwload virust host database
         command = f'wget https://www.genome.jp/ftp/db/virushostdb/virushostdb.tsv -O {database_path}virushostdb.tsv'

@@ -73,8 +73,7 @@ def __run(config, add_option):
     path_snakevir = Path(__file__).resolve().parent.parent
     verif_config(config)
     add_option = " ".join(add_option)
-    cmd = f"snakemake  -s {path_snakevir}/snakefile --configfile {config} --verbose --profile {path_snakevir}/install_files/profile/slurm --cluster-config {path_snakevir}/install_files/cluster.yaml --show-failed-logs {add_option}"
-    print(cmd)
+    cmd = f"snakemake  -s {path_snakevir}/snakefile --configfile {config} --profile {path_snakevir}/install_files/profile/slurm --cluster-config {path_snakevir}/install_files/cluster.yaml --show-failed-logs {add_option}"
     process = subprocess.run(cmd, shell=True, check=False, stdout=sys.stdout, stderr=sys.stderr)
     if int(process.returncode) >= 1:
         raise
