@@ -41,9 +41,9 @@ rRNA_host: "/lustre/charriatf/test_HN175802/tools_snakevir/database/silva_db/sil
 
 
 #File joining sequence IDs to taxonomic ids nr
-base_taxo: "/lustre/charriatf/test_HN175802/tools_snakevir/database/prot.accession2taxid.gz"
+base_taxo: "/lustre/charriatf/test_HN175802/tools_snakevir/database/prot.accession2taxid"
 #File joining sequence IDs to taxonomic ids nt
-base_taxo_nt: "/lustre/charriatf/test_HN175802/tools_snakevir/database/nucl_gb.accession2taxid.gz"
+base_taxo_nt: "/lustre/charriatf/test_HN175802/tools_snakevir/database/nucl_gb.accession2taxid"
 #File with virus host informations
 host_db: "/lustre/charriatf/test_HN175802/tools_snakevir/database/virushostdb.tsv"
 

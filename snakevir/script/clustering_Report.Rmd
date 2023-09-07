@@ -1,6 +1,18 @@
 ---
 title: "Clustering_report"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
+params:
+  min_read_by_sample: ''
+  min_read_by_contig: ''
+  run_name: ''
+  blast_file: ''
+  taxo_file: ''
+  host_file: ''
+  count_file: ''
+  cov10_file: ''
+  coverage_stat_file: ''
+  output_directory: ''
+
 output:
   rmdformats::readthedown:
     toc_float:
@@ -55,9 +67,9 @@ First step, we need blast Blast_5_hit_HN00175802_add_vir.tsv, for this we use a 
 #Abundace clust 
 abundance.clust <- 0.1 # Seuil de 90 %
 # Min Reads by Sample 
-min.reads.sample <- params$min_read_by_sample
+min.reads.sample <- as.integer(params$min_read_by_sample)
 # Min Reads by  otu 
-min.reads.otu <- params$min_read_by_contig
+min.reads.otu <- as.integer(params$min_read_by_contig)
 # Filter on cov10x
 filter.cov <- FALSE
 #Project name forinput and output file
@@ -111,7 +123,45 @@ final_table <- paste(dicrectory.output,'Final_',project.name,'_',date.run,'.csv'
 ### Function
 
 ```{r Function, echo=TRUE}
+options(repos = "https://pbil.univ-lyon1.fr/CRAN/")
 # Load Library
+if(!require("dplyr"))
+  {
+  install.packages('dplyr')
+}
+if(!require("purrr"))
+  {
+  install.packages('purrr')
+}
+if(!require("widyr"))
+  {
+  install.packages('widyr')
+}
+if(!require("stringr"))
+  {
+  install.packages('stringr')
+}
+if(!require("tidyr"))
+  {
+  install.packages('tidyr')
+}
+if(!require("ggplot2"))
+  {
+  install.packages('ggplot2')
+}
+if(!require("igraph"))
+  {
+  install.packages('igraph')
+}
+if(!require("reticulate"))
+  {
+  install.packages('reticulate')
+}
+if(!require("plotly"))
+  {
+  install.packages('plotly')
+}
+install.packages("htmltools")
 library(dplyr)
 library(purrr)
 library(widyr)

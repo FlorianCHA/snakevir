@@ -22,6 +22,11 @@ Map_On_bacteria:
   partition: agap_long
   cpus-per-task: '4'
   mem: 20G
+ 
+bwa_genome_host_mapping:
+  partition: agap_long
+  cpus-per-task: '4'
+  mem: 20G
   
 Megahit_Assembly:
   partition: agap_long
@@ -38,9 +43,9 @@ Map_On_Assembly:
   mem: 20G
   
 Blast_contigs_on_nr:
-  partition: agap_long
-  cpus-per-task: '2'
-  mem: 120G
+  partition: agap_bigmem
+  cpus-per-task: '1'
+  mem: 200G
   
 complete_taxo:
   partition: agap_long

@@ -208,7 +208,8 @@ rule bwa_index:
 rule bwa_genome_host_mapping:
     threads: 4
     input:
-        reference_genome = rules.bwa_index.output.index,
+        reference_genome = config["host_genome"],
+        reference_genome_index = rules.bwa_index.output.index,
         R1 = rules.Extract_Unmapped_bact_Reads.output.pairs_R1,
         R2 = rules.Extract_Unmapped_bact_Reads.output.pairs_R2,
         WI = rules.Extract_Unmapped_bact_Reads.output.WI
@@ -229,7 +230,7 @@ rule bwa_genome_host_mapping:
 
         if [ -s {input.WI} ]
         then
-        bwa mem -t {threads} {input.reference_genome} {input.WI} 2> {log} | samtools view -b -  | samtools view -f 0x4 -> {output.WI_sam}
+            bwa mem -t {threads} {input.reference_genome} {input.WI} 2> {log} | samtools view -f 0x4 -> {output.WI_sam}
         else
             echo "{input.WI} is empty."
             touch {output.WI_sam}
@@ -286,8 +287,9 @@ rule log_map_conta:
         awk '{{s++}}END{{print "bact_pair_R1 : " s/4}}' {input.bact_pairs_R1} >> {output.stat_conta};
         awk '{{s++}}END{{print "bact_pairs_R2 : " s/4}}' {input.bact_pairs_R2} >> {output.stat_conta};
         awk '{{s++}}END{{print "bact_pair_wi : " s/4}}' {input.bact_WI} >> {output.stat_conta};
-        awk '{{s++}}END{{print "bact_pairs_R2 : " s/4}}' {input.genome_host_R2} >> {output.stat_conta};
-        awk '{{s++}}END{{print "bact_pair_wi : " s/4}}' {input.genome_host_WI} >> {output.stat_conta};
+        awk '{{s++}}END{{print "host_genome_pairs_R1 : " s/4}}' {input.genome_host_R1} >> {output.stat_conta};
+        awk '{{s++}}END{{print "host_genome_pairs_R2 : " s/4}}' {input.genome_host_R2} >> {output.stat_conta};
+        awk '{{s++}}END{{print "host_genome_pair_wi : " s/4}}' {input.genome_host_WI} >> {output.stat_conta};
         """
 
 # Merge paired-end reads , 3 files where created on with de merde pairs and two for the unmerged R1 and R2
@@ -296,7 +298,7 @@ rule Merge_Pairs_With_Flash:
         pairs_R1 = rules.Extract_Unmapped_genome_host_Reads.output.new_R1,
         pairs_R2 = rules.Extract_Unmapped_genome_host_Reads.output.new_R2
     params:
-        directory = f"{output_directory}/01_read_processing/06_flash_merge_pair/",
+        directory = f"{output_directory}/01_read_processing/07_flash_merge_pair/",
         prefix = f"{{smp}}",
         flash = scriptdir+"flash"
     output:
@@ -306,7 +308,7 @@ rule Merge_Pairs_With_Flash:
     benchmark:
         f"{output_directory}/benchmarks/{{smp}}.flash_merge.benchmark.txt"
     log:
-        f"{output_directory}/logs/01_read_processing/07_flash_merge_pair/{{smp}}q_flash.log"
+        f"{output_directory}/logs/01_read_processing/07_flash_merge_pair/{{smp}}_flash.log"
     shell:
         """
         flash -M 250 {input.pairs_R1} {input.pairs_R2} -d {params.directory} -o {params.prefix} &> {log}
