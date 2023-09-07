@@ -85,17 +85,19 @@ def install_database(path, database_path, install_path, database, skip):
         # Download accession2taxid
         list_skip = list() # Init list which contain all fils skiped
         ## for nucleotide
-        command = f'wget ftp://ftp.ncbi.nlm.nih.gov/pub/taxonomy/accession2taxid/nucl_gb.accession2taxid.gz -O {database_path}nucl_gb.accession2taxid.gz'
-        list_skip.append(download(f'{database_path}nucl_gb.accession2taxid.gz',command, database, skip))
+        command = f'wget ftp://ftp.ncbi.nlm.nih.gov/pub/taxonomy/accession2taxid/nucl_gb.accession2taxid.gz -O {database_path}nucl_gb.accession2taxid.gz;' \
+                  f'gunzip {database_path}nucl_gb.accession2taxid.gz'
+        list_skip.append(download(f'{database_path}nucl_gb.accession2taxid',command, database, skip))
         ## for portein
-        command = f'wget ftp://ftp.ncbi.nlm.nih.gov/pub/taxonomy/accession2taxid/prot.accession2taxid.gz -O {database_path}prot.accession2taxid.gz'
-        list_skip.append(download(f'{database_path}prot.accession2taxid.gz', command, database, skip))
+        command = f'wget ftp://ftp.ncbi.nlm.nih.gov/pub/taxonomy/accession2taxid/prot.accession2taxid.gz -O {database_path}prot.accession2taxid.gz;' \
+                  f'gunzip {database_path}prot.accession2taxid.gz'
+        list_skip.append(download(f'{database_path}prot.accession2taxid', command, database, skip))
         # Donwload virust host database
         command = f'wget https://www.genome.jp/ftp/db/virushostdb/virushostdb.tsv -O {database_path}virushostdb.tsv'
         list_skip.append(download(f'{database_path}virushostdb.tsv', command, database, skip))
         # Prepare silva database
         command = f'echo "\n\t* Extract Archive";' \
-                  f'wget https://github.com/FlorianCHA/snakevir/raw/master/install_files/silva_db.tar.gz -O {database_path}silva_db.tar.gz;' \
+                  f'wget https://github.com/FlorianCHA/snakevir/raw/master/snakevir/install_files/silva_db.tar.gz -O {database_path}silva_db.tar.gz;' \
                   f'tar zxvf {database_path}silva_db.tar.gz -C {database_path} > stdout;' \
                   f'gunzip {database_path}silva_db/*.fasta.gz;' \
                   f'echo "\t* Create index for bwa tools";' \
@@ -118,18 +120,18 @@ def config_yml(path, database_path, install_path):
     new_config = list()
     with open(f'{install_path}/config.yaml', 'r') as config:
         for line in config:
-            if "rRNA_bact" in line :
-                line = f'rRNA_bact: "{database_path}/silva_db/silva_138.1_bacteria.fasta"\n'
-            if "rRNA_host" in line:
-                line = f'rRNA_host: "{database_path}/silva_db/silva_138.1_insecta.fasta"\n'
-            if "base_taxo" in line:
-                line = f'base_taxo: "{database_path}/prot.accession2taxid.gz"\n'
-            if "base_taxo_nt" in line:
-                line = f'base_taxo_nt: "{database_path}/nucl_gb.accession2taxid.gz"\n'
-            if "host_db" in line:
-                line = f'host_db: "{database_path}/virushostdb.tsv"\n'
-            if "Scripts" in line:
-                line = f'Scripts: "{install_path}/script"\n'
+            if "rRNA_bact:" in line :
+                line = f'rRNA_bact: "{database_path}silva_db/silva_138.1_bacteria.fasta"\n'
+            if "rRNA_host:" in line:
+                line = f'rRNA_host: "{database_path}silva_db/silva_138.1_insecta.fasta"\n'
+            if "base_taxo:" in line:
+                line = f'base_taxo: "{database_path}prot.accession2taxid"\n'
+            if "base_taxo_nt:" in line:
+                line = f'base_taxo_nt: "{database_path}nucl_gb.accession2taxid"\n'
+            if "host_db:" in line:
+                line = f'host_db: "{database_path}virushostdb.tsv"\n'
+            if "Scripts:" in line:
+                line = f'Scripts: "{Path(__file__).resolve().parent.parent}/script/"\n'
             if "module_file:" in line:
                 line = f'module_file: "{path}/snakevir_module"\n'
             new_config.append(line)
@@ -145,9 +147,9 @@ def module_file(path,install_path):
     with open(f'{install_path}/snakevir_module','r') as module_file:
         for line in module_file:
             if "prepend-path PATH" in line:
-                line = f"prepend-path PATH {path}/snakevir_env/bin"
+                line = f"prepend-path PATH {path}/snakevir_env/bin\n"
             if "prepend-path LD_LIBRARY_PATH" in line:
-                line = f"prepend-path LD_LIBRARY_PATH {path}/snakevir_env/lib"
+                line = f"prepend-path LD_LIBRARY_PATH {path}/snakevir_env/lib\n"
             if "prepend-path CPATH" in line:
                 line = f"prepend-path CPATH {path}/snakevir_env/include"
             new_module.append(line)
@@ -194,10 +196,9 @@ def __install(path, tool, database, skip):
                        'max-status-checks-per-second: 10\n' \
                        'local-cores: 1\n' \
                        'jobs: 200\n' \
-                       'use-envmodules: true' \
+                       'use-envmodules: true\n' \
                        'latency-wait: 1296000\n' \
-                       'printshellcmds: true' \
-                       ''
+                       'printshellcmds: true'
     with open(f'{install_path}/profile/slurm/config.yaml', 'w') as f:
         f.write(add_config_slurm)
 

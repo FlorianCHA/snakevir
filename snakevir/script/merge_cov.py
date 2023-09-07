@@ -20,7 +20,7 @@ for subdir, dirs, files in os.walk(sys.argv[1]):
 			key = filename.rstrip(".cov")
 			with open(filepath) as tsvfile:
 				f = pd.read_csv(tsvfile, delimiter="\t", names=["contig", "nuc_pos", key])
-				#print(f)
+				print(f)
 				if df.empty:
 					df=f
 				else:

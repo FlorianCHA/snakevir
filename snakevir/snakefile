@@ -14,6 +14,7 @@ def errormes(mes):
 configfile : "config.yaml"
 cconfigfile : "config.yaml"
 datadir = config["fastq"]
+output_directory = config["output"]
 scriptdir = config["Scripts"]
 host_db = config["host_db"]
 rRNA_bact=config["rRNA_bact"]
@@ -58,16 +59,17 @@ if NBREADS != 2*NBSAMPLES:
 
 rule final:
     input:
-        expand("logs/logs_contaminent/Stats_contaminent_{smp}.txt", smp=SAMPLES),
-        f"logs/logsAssembly/{RUN}_assembly_stats.txt",
-        expand(f"logs/insert_size/{{smp}}_insert_size_metrics_{RUN}.txt", smp=SAMPLES),
-        expand(f"logs/logs_coverage/{{smp}}_coverage_{RUN}.txt", smp=SAMPLES),
-        f"Coverage/count_contigs_raw_{RUN}.csv",
-        expand(f"logs/logs_coverage_raw/{{smp}}_coverage_{RUN}.txt", smp=SAMPLES),
-        f"intergreted_vir_check_{RUN}.csv",
-        f"results/hosts_lineage_{RUN}.csv",
-        f"logs/stats_run_{RUN}.csv",
-        f"{RUN}/results/range_10x_coverage.cov"
+        expand( f"{output_directory}/logs/01_read_processing/Stats_contaminent_{{smp}}.txt", smp=SAMPLES),
+        f"{output_directory}/logs/02_assembly_results/logsAssembly/{RUN}_assembly_stats.txt",
+        expand(f"{output_directory}/logs/03_mapping_on_assembly/{{smp}}_insert_size_metrics_{RUN}.txt", smp=SAMPLES),
+        expand(f"{output_directory}/logs/03_mapping_on_assembly/03_CountsMapping/{{smp}}_coverage_{RUN}.txt", smp=SAMPLES),
+        f"{output_directory}/04_blast_output/03_coverage/count_contigs_raw_{RUN}.csv",
+        expand(f"{output_directory}/05_depth/{{smp}}_coverage_raw_{RUN}.txt", smp=SAMPLES),
+        f"{output_directory}/04_blast_output/05_taxonomy_nt/intergreted_vir_check_{RUN}.csv",
+        f"{output_directory}/06_final_data/hosts_lineage_{RUN}.csv",
+        f"{output_directory}/06_final_data/stats_run_{RUN}.csv",
+        f"{output_directory}/06_final_data/{RUN}_range_10x_coverage.cov",
+        f"{output_directory}/06_final_data/clustering_Report_{RUN}.html"
 
 ############################### Read processing #################################################
 include: f"snakefiles/read_processing.snake"
@@ -92,12 +94,47 @@ rule Create_logs_report:
         by_seq = rules.Join_seq_acc_taxo_nr.output.taxo,
         count_t = rules.Build_array_coverage_nr.output.by_seq
     output:
-        "logs/stats_run_{RUN}.csv"
+        f"{output_directory}/06_final_data/stats_run_{{RUN}}.csv"
     params:
         files=datadir,
+        output_directory = output_directory,
         ext=ext_R1+ext,
         script=scriptdir+"create_results_doc_new.py"
     shell:
         """
-        python {params.script} {params.files} {ext_R1} {ext_R2} {ext} {RUN} {input.by_seq}   {input.lineage}    {input.count_t}  {output}
+        python {params.script} {params.files} {ext_R1} {ext_R2} {ext} {RUN} {input.by_seq}   {input.lineage}    {input.count_t}  {output} {params.output_directory}
+        """
+
+rule Add_vir_to_blastn:
+    input:
+        virald_ids = rules.extract_viral_ids.output.taxo,
+        blast_5_hit = rules.get_nr_lineage_from_taxids.output.blst,
+        interg_virus = rules.intergreted_vir_check.output.tmp,
+    output:
+        blast_add_vir = f"{output_directory}/06_final_data/Blast_5_hit_{{RUN}}_add_vir.csv"
+    shell:
+        """
+        grep -Fw -f {input.virald_ids} {input.blast_5_hit}  | awk -F"[\t, ]" 'FNR==NR&&NR!=1{{a[$1]="YES"}} FNR!=NR{{OFS=",";if(FNR!=1){{$(NF+1)= (NR==1 ? "is_vir" : a[$1])}}1;print}}' {input.interg_virus} -  |awk -F',' '!$NF {{OFS=","; $NF="NO" }}1' > {output.blast_add_vir}
+        sed -i "s/tax_id/tax_id,not_vir/" {output.blast_add_vir}
+        """
+
+rule Clustering_OTU:
+    input:
+        blast_file = rules.Add_vir_to_blastn.output.blast_add_vir,
+        taxo_file = rules.get_nr_lineage_from_taxids.output.lin5c,
+        host_file = rules.join_host_tax.output.host_lineage,
+        count_file = rules.Build_array_coverage_nr.output.by_seq,
+        cov10_file = rules.results_depth.output.range_10x,
+        coverage_stat_file = rules.results_depth.output.stats_deph
+    output:
+        directory = directory(f"{output_directory}/06_final_data/{{RUN}}_OTU"),
+        report = f"{output_directory}/06_final_data/clustering_Report_{{RUN}}.html"
+    params:
+        script= f'{scriptdir}/clustering_Report.Rmd',
+        min_read_by_sample = 1,
+        min_read_by_contig = 1,
+        run_name = RUN
+    shell:
+        """
+        Rscript -e 'rmarkdown::render("{params.script}", output_file="{output.directory}", quiet=TRUE, params = list(output_directory = "{output.directory}", blast_file = "{input.blast_file}", taxo_file = "{input.taxo_file}", host_file = "{input.host_file}", count_file = "{input.count_file}", cov10_file = "{input.cov10_file}", coverage_stat_file = "{input.coverage_stat_file}", min_read_by_sample = {params.min_read_by_sample}, min_read_by_contig = {params.min_read_by_contig} ,run_name = "{params.run_name}"))'
         """

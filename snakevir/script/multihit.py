@@ -168,7 +168,8 @@ del tax_table[9]
 
 #tax_table.to_csv(r'tax_table.csv', sep='\t', index=False)
 tax_table.to_csv(sys.argv[4], sep='\t', index=False, mode = 'w')
-df3.to_csv("Taxonomy/comp_inf.csv", sep='\t', index=False, mode = 'w')
+comp_inf = sys.argv[1].replace(sys.argv[1].split('/')[-1],'comp_inf.csv')
+df3.to_csv(comp_inf, sep='\t', index=False, mode = 'w')
 #tax_table.to_csv(r out_file, sep=',')
 ##df.to_csv(r'qseq_dic.csv', sep=',')
 ##df1.to_csv(r'qseq_dic_taxid.csv', sep=',')

@@ -1,0 +1,780 @@
+---
+title: "Clustering_report"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+params:
+  min_read_by_sample: ''
+  min_read_by_contig: ''
+  run_name: ''
+  blast_file: ''
+  taxo_file: ''
+  host_file: ''
+  count_file: ''
+  cov10_file: ''
+  coverage_stat_file: ''
+  output_directory: ''
+
+output:
+  rmdformats::readthedown:
+    toc_float:
+      smooth_scroll: false
+    toc_depth: 3
+    code_folding: hide
+  html_document:
+    code_folding: hide
+    fig_caption: yes
+    highlight: zenburn
+    theme: cerulean
+    toc: yes
+    toc_float:
+      collapsed: false
+      smooth_scroll: false
+    toc_depth: 3
+
+---
+
+<style>
+
+p {
+  text-align: justify;
+}
+h2 {
+    border-bottom: 2px solid;
+}
+h3 {
+    border-bottom: 1px solid;
+}
+</style>
+
+```{r knitr setup, include=FALSE,  eval=TRUE, echo=FALSE, warning=FALSE}
+# knitr::opts_chunk$set(echo=TRUE, eval=TRUE, cache=TRUE, message=FALSE, warning=FALSE, comment="")
+library(knitr)
+options(width=300)
+knitr::opts_chunk$set(
+  fig.width = 10, 
+  fig.height = 8, 
+  fig.align = "center", 
+  size = "tiny", 
+  echo = TRUE, eval=TRUE, 
+  warning = FALSE, message = FALSE, 
+  results = TRUE, comment = "")
+```
+
+# Clustering Script by Antoni
+
+First step, we need blast Blast_5_hit_HN00175802_add_vir.tsv, for this we use a bash script which use viral_contigs_ids_HN00175802.txt and viral_contigs_ids_HN00175802.txt. Then in the new file we add the columns name not_vir.
+
+```{r input file, echo=TRUE}
+#Abundace clust 
+abundance.clust <- 0.1 # Seuil de 90 %
+# Min Reads by Sample 
+min.reads.sample <- as.integer(params$min_read_by_sample)
+# Min Reads by  otu 
+min.reads.otu <- as.integer(params$min_read_by_contig)
+# Filter on cov10x
+filter.cov <- FALSE
+#Project name forinput and output file
+project.name <- params$run_name
+#Blast file
+blast.file <- params$blast_file
+#Virus Taxonomy table
+taxo.file <- params$taxo_file
+#Hosts Taxonomy table
+host.file <- params$host_file
+#Count table
+count.file <- params$count_file
+#Coverage range where cover is lower than 10X (sum of cover of all samples)
+cov10x.file <- params$cov10_file
+#Coverage min/max/mean/med for each  contigs sequences on all samples
+coversage.stat.file <- params$coverage_stat_file
+
+```
+
+
+| Variable Name        | Seuil                      |
+|----------------------|----------------------------|
+| Clustering abundance | ```r abundance.clust```    |
+| Min reads by Sample  | ```r min.reads.sample```   |
+| Min reads by OTU     | ```r min.reads.otu```      |
+
+## Script 
+
+### Output
+
+
+```{r output file, echo=TRUE}
+# Create OTU directory 
+dicrectory.output <- params$output_directory
+# Retrieve date of Rmarckdown generation
+date.run <- format(Sys.time(), "%d_%m_%y")
+# Blast file
+output_blast <- paste(dicrectory.output,'/stats_by_qseqid_',project.name,'_',date.run,'.csv', sep = "", collapse = NULL)
+# Taxo file
+output_taxo <- paste(dicrectory.output,'/taxo_',project.name,'_',date.run,'.csv', sep = "", collapse = NULL)
+# Average OTU blast stat
+output_otu_stat <- paste(dicrectory.output,'/otu_stat_',project.name,'_',date.run,'.csv', sep = "", collapse = NULL)
+# Count table 
+output_count <- paste(dicrectory.output,'/count_table_',project.name,'_',date.run,'.csv', sep = "", collapse = NULL)
+# Stat by qseqid
+output_stat_qseqid <-paste(dicrectory.output,'/stats_by_qseqid_10.csv', sep = "", collapse = NULL)
+#Big merge table
+final_table <- paste(dicrectory.output,'Final_',project.name,'_',date.run,'.csv', sep = "", collapse = NULL)
+```
+
+### Function
+
+```{r Function, echo=TRUE}
+options(repos = "https://pbil.univ-lyon1.fr/CRAN/")
+# Load Library
+if(!require("dplyr"))
+  {
+  install.packages('dplyr')
+}
+if(!require("purrr"))
+  {
+  install.packages('purrr')
+}
+if(!require("widyr"))
+  {
+  install.packages('widyr')
+}
+if(!require("stringr"))
+  {
+  install.packages('stringr')
+}
+if(!require("tidyr"))
+  {
+  install.packages('tidyr')
+}
+if(!require("ggplot2"))
+  {
+  install.packages('ggplot2')
+}
+if(!require("igraph"))
+  {
+  install.packages('igraph')
+}
+if(!require("reticulate"))
+  {
+  install.packages('reticulate')
+}
+if(!require("plotly"))
+  {
+  install.packages('plotly')
+}
+install.packages("htmltools")
+library(dplyr)
+library(purrr)
+library(widyr)
+library(stringr)
+library(tidyr)
+library(ggplot2)
+library(igraph)
+library('reticulate', warn.conflict = FALSE, quietly = TRUE)
+
+# Function
+fblastscore <- function(blast_table, range_pid="22-0.2", range_bitscore="0.8") {
+  max_pid_contig<-blast_table %>% group_by(qseqid)  %>% dplyr::summarise(max_pid_contig = max(pident))
+  blast_table<-left_join(blast_table, max_pid_contig, by = "qseqid")
+  blast_table<-blast_table %>% dplyr::filter(abs(pident-max_pid_contig)<=eval(parse(text=paste0(range_pid,"*max_pid_contig"))))
+  num_output_filt_id<- length(blast_table$qseqid)
+  max_bitscore_contig<-blast_table %>% group_by(qseqid)  %>% dplyr::summarise(max_bitscore_contig = max(bitscore))
+  blast_table<-left_join(blast_table, max_bitscore_contig, by = "qseqid")
+  blast_table<-blast_table %>% dplyr::filter(bitscore>=eval(parse(text=paste0(range_bitscore,"*max_bitscore_contig"))))
+  return(blast_table_fblastscore=blast_table)
+}
+
+fcover <- function(blast_table ,cov_10x, filter ) {
+  datalist = list()
+  for(i in levels(as.factor(blast_table$contig))){
+    j<-blast_table[blast_table$contig == i,]$qseqid
+    sub<- cov_10x[cov_10x$contig == j,]
+    inf10x=0
+    gap=0
+    align_in_low="NO"
+    if(j %in% cov_10x$contig){
+      for (row in 1:nrow(sub)){
+        gap=gap+1
+        inf10x=inf10x+sub[row,3]-sub[row,2]
+        if (pmin(blast_table[blast_table$contig == i,]$qstart, blast_table[blast_table$contig == i,]$qend)>=sub[row,2] &
+            pmax(blast_table[blast_table$contig == i,]$qstart, blast_table[blast_table$contig == i,]$qend)<=sub[row,3]) {
+          align_in_low="YES"
+        }
+        else{
+          align_in_low="NO"
+        }
+      }
+    }
+    else{
+      inf10x=0
+      gap=0
+      align_in_low="NO"
+    }
+    if (filter == FALSE)
+    {
+      align_in_low="NO"
+      inf10x=0
+      gap=0
+      }
+    datalist[[i]] <- data.frame(inf10x=inf10x, n_gap=gap, align_in_low=align_in_low)
+  }
+  #len_cov_10x length of contig with coverage inf to 10X
+  len_cov_10x = do.call(rbind, datalist)
+  len_cov_10x <- tibble::rownames_to_column(len_cov_10x, "qseqid")
+  blast_table<-left_join(blast_table,len_cov_10x, by=c("contig"="qseqid"))
+  blast_table %>%  group_by(align_in_low) %>% dplyr::count(align_in_low, sort = TRUE)
+  
+  blast_table_10x<-blast_table[(blast_table$align_in_low=="NO"),]
+  blast_table_10x<-blast_table_10x[(blast_table_10x$not_vir=="NO"),]
+  blast_table_10x<-blast_table_10x%>% dplyr::select(-not_vir)
+  return(blast_table_10x)
+}
+  
+clustcount <- function(blast_table,count_table, prev="0.1" ) {
+  V1<-count_table %>%
+    pivot_longer(!qseqid, names_to = "sample", values_to = "count")
+  V1<-left_join(V1 , blast_table %>%  select(qseqid, grp), by="qseqid")%>%  distinct()
+  V1<-V1[!is.na(V1$grp),]
+  V1$qseqid<-NULL
+  V1$count<-as.numeric(V1$count)
+  V1<-V1 %>% group_by(sample,grp) %>%   plotly::summarise(count = sum(count)) %>%  filter(count>0)
+  
+  V1<-as.data.frame(V1 %>%  pivot_wider(names_from = grp, values_from = count, values_fill = 0))
+  rownames(V1) <- V1[,1]
+  V1<- V1[,-1]
+  V2<-(log(as.data.frame(V1[,colSums(V1 == 0)/nrow(V1)<1-prev, drop = FALSE]), 4))
+  
+  V2[V2 == "-Inf"] <- 0
+  V2<-V2[,colSums(V2[])>0]
+  # Verif family for clustering with abundance !
+  cor_count_clus<-hclust(as.dist(1-abs(cor(na.omit(V2)))))
+  cor_count.gp <- data.frame(cor_count = cutree(cor_count_clus, h = c(as.numeric(0.2))))
+  cor_count.gp <- tibble::rownames_to_column(cor_count.gp, "grp")
+  cor_count.gp$grp<-as.integer(cor_count.gp$grp)
+  cor_count.gp$grp<-as.numeric(cor_count.gp$grp)
+  blast_table <- left_join(blast_table, cor_count.gp, by="grp")
+  count_grp_in_grp<-blast_table%>% group_by(cor_count) %>%dplyr::count(grp)%>%dplyr::count(cor_count)
+  blast_table<-left_join(blast_table, count_grp_in_grp, by=c("cor_count"="cor_count"))
+  names(blast_table)[ncol(blast_table)] <- "count_grp_in_grp"
+  blast_table$MA<-ifelse(blast_table$count_grp_in_grp>1 & !is.na(blast_table$cor_count) ,paste0("tmp_",blast_table$cor_count),blast_table$grp)
+  clusters<-as.data.frame(blast_table$MA) %>% distinct()
+  clusters$MA_grp<-paste0("MA",rownames(clusters))
+  blast_table<-left_join(blast_table, clusters, by=c("MA"="blast_table$MA"))
+  blast_table<-blast_table %>% group_by(MA_grp) %>% dplyr::count(tax_id) %>% dplyr::count(MA_grp) %>%  right_join(blast_table, by = 'MA_grp')
+  blast_table$MA_grp<-ifelse(blast_table$n==1,blast_table$tax_id , blast_table$MA_grp)
+  blast_table1<-blast_table %>% dplyr::select(-c(n,max_pid_contig,pos_in_grp,align_in_low,max_bitscore_contig,grp, cor_count,count_grp_in_grp,MA))%>%
+    relocate(MA_grp, .after = tax_id)
+  return(blast_table)
+}
+
+clustma <- function(blast_table) {
+  V<-blast_table  %>% dplyr::count(tax_id, qseqid, sort = TRUE) %>% group_by(qseqid)
+  V<- crossprod(table(V[2:1]))
+  gu <- graph.adjacency(V, mode="undirected" , diag = FALSE , weighted =  TRUE)
+  gu.COM<-cluster_label_prop(gu,weights =  E(gu)$weight)
+  com <- as.data.frame(cbind(V(gu)$name,gu.COM$membership))
+  names(com) <- c("qseqid","grp")
+  length(unique(com$grp))
+  blast_table<-left_join(blast_table , com, by="qseqid")%>%  distinct()
+  blast_table$grp<-as.numeric(blast_table$grp)
+  return(blast_table)
+}
+
+mergetaxo <- function(blast_table ,tax_table ) {
+  #Find the Most occurent homologue  species (hit) for each multi-affiliation groups
+  best_sp<-blast_table%>%group_by(MA_grp,tax_id)%>% dplyr::select(MA_grp,tax_id) %>% dplyr::count(MA_grp)%>% group_by(MA_grp) %>% top_n(1, abs(n))
+  colnames(best_sp) <- c("MA_grp", "tax_id","count_best_sp")
+  
+  #If species with same occurence keep the most abundante one
+  best_sp<-left_join(best_sp,blast_table %>%  dplyr::select(MA_grp,tax_id, sum)%>% distinct(),by=c("MA_grp","tax_id")) %>%
+    group_by(MA_grp,tax_id) %>% dplyr::summarise(sum = sum(sum))%>% group_by(MA_grp)  %>%  filter(sum==max(sum,na.rm = T)) %>%
+    filter(n() < 2) %>% dplyr::select(!sum)
+  
+  #if species with same abundance keep the best alignement score
+  best_sp_bitscore<-anti_join(blast_table %>%  select(MA_grp,tax_id,bitscore), best_sp, by="MA_grp") %>% group_by(MA_grp)  %>%
+    top_n(1, abs(bitscore))  %>%  distinct(MA_grp,.keep_all = TRUE) %>%  select(!bitscore)
+  
+  #Merge the two df
+  best_sp <- rbind(best_sp, best_sp_bitscore)
+  
+  #Find the Most occurent non NA cluster for each multi-affiliation groups
+  best_clus<-left_join(blast_table %>%  select(MA_grp,tax_id, sum, bitscore) , taxo_5 %>% dplyr::select(tax_id, cluster), by="tax_id") %>% group_by(MA_grp, cluster)  %>%  dplyr::summarise(non_na_count = sum(!is.na(cluster))) %>%
+    filter(if(non_na_count!=0) (!is.na(cluster)) else TRUE) %>%  filter(non_na_count==max(non_na_count,na.rm = T)) %>%   select(c(1,2)) %>% distinct(MA_grp, .keep_all= TRUE)%>% group_by(MA_grp)
+  colnames(best_clus) <- c("MA_grp", "best_non_na_cluster")
+   
+  #Add the MA_grp value to the taxo table
+  tax_table<-tax_table %>% left_join(blast_table %>%  select(tax_id, MA_grp) %>%  distinct(tax_id , .keep_all= TRUE) , by ="tax_id") %>% distinct()
+  
+  #Create un table with all the possible taxonomic rank (| separated) for each MA_grp
+  taxo_cor_clust<-tax_table %>%   group_by(MA_grp) %>%
+    mutate(taxid_grp = paste0(na.omit(unique(tax_id)), collapse = "|"),
+           Nucleic_acid_grp = paste0(na.omit(unique(Nucleic_acid)), collapse = "|"),
+           genome_grp = paste0(na.omit(unique(genome)), collapse = "|"),
+           cluster_grp = paste0(na.omit(unique(cluster)), collapse = "|"),
+           clade_grp = paste0(na.omit(unique(clade)), collapse = "|"),
+           kingdom_grp = paste0(na.omit(unique(kingdom)), collapse = "|"),
+           phylum_grp = paste0(na.omit(unique(phylum)), collapse = "|"),
+           class_grp = paste0(na.omit(unique(class)), collapse = "|"),
+           order_grp = paste0(na.omit(unique(order)), collapse = "|"),
+           family_grp = paste0(na.omit(unique(family)), collapse = "|"),
+           genus_grp = paste0(na.omit(unique(genus)), collapse = "|"),
+           species_grp = paste0(unique(species), collapse = "|"),
+           hosts_taxon_grp = paste0(na.omit(unique(hosts_taxon)), collapse = "|")) %>%
+    distinct(MA_grp, .keep_all= TRUE) %>% dplyr::select(16:ncol(.))
+  
+  #Add the best non NA cluster to the table
+  taxo_cor_clust<-taxo_cor_clust  %>% dplyr::full_join(best_clus, by="MA_grp")%>% mutate_all(na_if,"")
+  #Add the best specie
+  taxo_cor_clust<-taxo_cor_clust  %>% dplyr::full_join(best_sp, by="MA_grp")%>% mutate_all(na_if,"")
+  taxo_cor_clust<-taxo_cor_clust  %>% dplyr::full_join(tax_table %>%  select(-MA_grp), by="tax_id")%>% mutate_all(na_if,"")
+  
+  return(taxo_cor_clust=taxo_cor_clust)
+}
+
+cleaned_merge <- function(blast_table,count_table,sct_smp=min.reads.sample,sct_otu=min.reads.otu ) {
+  blast_table=stats_by_qseqid_7
+  count_table=count_contigs_5[ , names(count_contigs_5) != "sum"]
+  rowSums(count_table[,2:ncol(count_table)]%>%  summarize_if(is.numeric, sum, na.rm=TRUE))
+  
+  
+  blast_table$pident_qlen<-blast_table$pident*blast_table$qlen
+  stats_by_taxids=ddply(blast_table,.(MA_grp),summarise,Avg_match_length=round(mean(length),digits=2),	n_Contigs=round(n_distinct(qseqid),digits=2), Avg_contigs_length=round(mean(qlen),digits=2),
+                        Sum_contigs_length=round(sum(qlen),digits=2), Avg_Coverage_contigs=round(mean(qcovhsp),digits=2),n_subject=round(n_distinct(sseqid),digits=2),Avg_Coverage_subject=round(mean(length*100/slen),digits=2),
+                        Pond_Avg_contigs_p_id=round(sum(pident_qlen)/sum(qlen),digits=2), min_contigs_p_id=round(min(pident),digits=2), max_contig_p_id=round(max(pident),digits=2),
+                        avg_contig_p_id=round(mean(pident),digits=2),min_coverage=min(min_coverage),max_coverage=max(max_coverage),mean=mean(mean_coverage))
+  seq_id_taxid<-blast_table %>% dplyr::select(qseqid,MA_grp)
+  stats_by_qseqid<-blast_table %>% dplyr::select(qseqid:MA_grp)
+  seq_id_taxid$qseqid<-as.character(seq_id_taxid$qseqid)
+  out_seq<-left_join(blast_table,count_table, by="qseqid")
+  count_table<- out_seq  %>% dplyr::select (which(colnames(out_seq)=="MA_grp"),(which(colnames(out_seq)=="pident_qlen")+1):ncol(out_seq)) %>% distinct()
+  count_table<-aggregate(. ~ MA_grp, count_table, sum)
+  rownames(count_table) <- count_table[,1]
+  count_table <- count_table[,-1]
+  count_table<-count_table[rowSums(abs(count_table[,-1])) != 0,]
+  count_table[count_table < sct_smp] <- 0
+  count_table<-count_table[rowSums(abs(count_table)) != 0,]
+  count_table<-count_table[rowSums(abs(count_table))>= sct_otu,]
+  count_table <- tibble::rownames_to_column(count_table, "MA_grp")
+  out_seq<-subset(out_seq, MA_grp %in% count_table$MA_grp)
+  stats_by_taxids<-subset(stats_by_taxids, MA_grp %in% out_seq$MA_grp)
+  return(list(out_seq,count_table,stats_by_taxids))
+}
+
+dedupl <- function(tax_table, blast_table ) {
+  #Create a df of duplicated species with ids
+  dup_table<-tax_table %>% group_by(species) %>% filter(n()>1)%>% dplyr::select("tax_id","species")
+  #Add sum reads value for each contig on each otu to the df-
+  dup_table<-left_join(dup_table,blast_table %>% dplyr::select(tax_id, qseqid) , by="tax_id")
+  dup_table<-left_join(dup_table,sum_contig , by="qseqid")
+  dup_table<-dup_table %>% distinct()
+  dup_table<-dup_table %>% distinct(species,sum,.keep_all= TRUE)
+  
+  dup_table<-dup_table %>% group_by(species) %>% top_n(1, abs(sum))
+  #Add other possible tax_id
+  dup_table<-right_join(dup_table,tax_table , by="species") %>% dplyr::select(tax_id.x,tax_id.y)
+  dup_table<-dup_table[!is.na(dup_table$tax_id.x), ]
+  #Keep row with the different value possible
+  dup_table <- unique(dup_table[dup_table$tax_id.x!=dup_table$tax_id.y,])
+  #Remove species name
+  dup_table$species<-NULL
+  #Add the two possbile tax_id to the stats table tax_id.y==old tax_id.x==tax_id to correct with
+  blast_table<-left_join(blast_table, dup_table, by = c("tax_id" = "tax_id.y"))
+  #Correct the duplicated tax_id  with the "new" one
+  blast_table$tax_id[!is.na(blast_table$tax_id.x)]<-blast_table$tax_id.x[!is.na(blast_table$tax_id.x)]
+  blast_table$tax_id.x<-NULL
+  tax_table<-subset(tax_table, tax_id %in% blast_table$tax_id)
+  return(list(blst_tbl_dedup=blast_table,tax_tbl_dedup=tax_table))
+}
+
+fctrl <- function(count_table ,control_table ) {
+  control_table<-subset(control_table,row.names(control_table) %in% count_table$qseqid)
+  #For each contigs find the control with the highest values and create the "max_control" col in the count df
+  count_table$max_control<- as.numeric(apply(control_table, 1, max))
+  
+  #La 1ère colonne du df count_table devient le nom des contigs au lieu du num de colonne
+  rownames(count_table) <- count_table[,1]
+  count_table <- count_table[,-1]
+  
+  #Soustrait le nombre max_control a chaque echantillon
+  count_table<-count_table[1:ncol(count_table)]-count_table[,ncol(count_table)]
+  #Change for each contig on each sample the count value to zero if value is lower than max control value
+  count_table[count_table <= count_table$max_control] <-0
+  
+  #Remove max_control Col
+  count_table$max_control<- NULL
+  #Remove row with all zero after filt
+  count_table<-count_table[rowSums(abs(count_table)) != 0,]
+  
+  #Create a "sum" col with sum of reads count for each contigs (row)
+  count_table$sum <- rowSums( count_table[,1:ncol(count_table)] )
+  count_table <- tibble::rownames_to_column(count_table, "qseqid")
+  return(count_table)
+}
+```
+
+### Parse input file
+
+```{r open file, echo=TRUE}
+#Blast table
+stats_by_qseqid=read.csv(blast.file, header = TRUE, check.names = FALSE)
+stats_by_qseqid <- stats_by_qseqid %>%  group_by(qseqid) %>%  dplyr::mutate(pos_in_grp = 1:n())
+stats_by_qseqid$contig <- paste(stats_by_qseqid$qseqid, stats_by_qseqid$pos_in_grp, sep="_")
+#Virus Taxonomy table
+taxo=read.csv(taxo.file, header = TRUE, check.names = FALSE)
+#Hosts Taxonomy table
+host=read.csv(host.file,header = TRUE, check.names = FALSE)
+#Merge Virus and hosts taxo
+taxo<-left_join(taxo, host %>% dplyr::select(hosts_taxon,tax_id), by= "tax_id")
+#Count table
+count_contigs=read.csv(count.file,header = TRUE, check.names = FALSE, row.names = 1)
+#Coverage range where cover is lower than 10X (sum of cover of all samples)
+cov_10x = read.csv(cov10x.file,header = TRUE, check.names = FALSE)
+#Coverage min/max/mean/med for each  contigs sequences on all samples
+coverage_stats=read.csv(coversage.stat.file,header = TRUE, check.names = FALSE)
+
+#Remove undertermined count from the table (4 undeterminded)
+count_contigs<-count_contigs[ , !grepl( "Unde" , names( count_contigs ) )]
+count_contigs<-count_contigs[rowSums(abs(count_contigs[,])) != 0,]
+count_contigs <- tibble::rownames_to_column(count_contigs, "qseqid")
+#Remove contig only present in undertermined 
+stats_by_qseqid<-subset(stats_by_qseqid, qseqid %in% count_contigs$qseqid)
+taxo<-subset(taxo, tax_id %in% stats_by_qseqid$tax_id)
+
+#Remove non viral contigs from blast table and add coverage stats
+stats_by_qseqid<-subset(stats_by_qseqid, tax_id %in% taxo$tax_id)
+stats_by_qseqid<-left_join(stats_by_qseqid,coverage_stats, by=c("qseqid"="contig"))
+#Remove non viral contigs from count table
+count_contigs<-subset(count_contigs, qseqid %in% stats_by_qseqid$qseqid)
+
+rownames(count_contigs) <- count_contigs[,1]
+count_contigs <- count_contigs[,-1]
+```
+
+### Remove control form count table
+
+```{r control search, echo=TRUE}
+#Create a df with only the control count values
+# here change code with control identification !
+# control<-count_contigs[ , grepl("141" , names( count_contigs ) ) | grepl( "142" , names( count_contigs ) ) 
+#                         | grepl( "143" , names( count_contigs ) )| grepl( "144" , names( count_contigs ) )
+#                         | grepl( "145" , names( count_contigs ) )| grepl( "146" , names( count_contigs ) )] 
+# #Remove control from the count df
+# count_contigs<-count_contigs[ , !grepl("141" , names( count_contigs ) ) & !grepl( "142" , names( count_contigs ) ) 
+#                               &!grepl( "143" , names( count_contigs ) )&!grepl( "144" , names( count_contigs ) )
+#                               & !grepl( "145" , names( count_contigs ) )& !grepl( "146" , names( count_contigs ) )] 
+count_contigs<-count_contigs[rowSums(abs(count_contigs[,1:ncol(count_contigs)])) != 0,]
+#calculate sum of reads for each contigs
+count_contigs$sum <- rowSums( count_contigs[,1:ncol(count_contigs)] )
+#create df with only qseqid and sum 
+count_contigs <- tibble::rownames_to_column(count_contigs, "qseqid")
+sum_contig<-count_contigs %>% dplyr::select(qseqid, sum)
+stats_by_qseqid<-left_join(stats_by_qseqid,sum_contig , by="qseqid") 
+#remove sum col from count_contigs df
+count_contigs$sum <- NULL
+stats_by_qseqid<-subset(stats_by_qseqid, tax_id %in% taxo$tax_id)
+
+#Calculate stat 
+num_contigs<- length(unique(stats_by_qseqid$qseqid))
+num_output<- length(stats_by_qseqid$qseqid)
+num_besth<- length(unique(stats_by_qseqid[!duplicated(stats_by_qseqid$qseqid),]$tax_id))
+num_tax_id<- length(unique(stats_by_qseqid$tax_id))
+num_read<-rowSums(count_contigs[,2:ncol(count_contigs)]%>%  summarize_if(is.numeric, sum, na.rm=TRUE))
+```
+
+### Step 1 : Blast filter
+
+```{r Step.1 filter blast, echo=TRUE}
+# Filter hits from the blast table based on pid and bitscore
+stats_by_qseqid_1<- fblastscore(stats_by_qseqid, range_pid="22-0.2", range_bitscore="0.8")
+taxo_1<-subset(taxo, tax_id %in% stats_by_qseqid_1$tax_id)
+
+#Calculate stat 
+num_contigs_1<- length(unique(stats_by_qseqid_1$qseqid))
+num_output_1<- length(stats_by_qseqid_1$qseqid)
+num_besth_1<- length(unique(stats_by_qseqid_1[!duplicated(stats_by_qseqid_1$qseqid),]$tax_id))
+num_tax_id_1<- length(unique(stats_by_qseqid_1$tax_id))
+num_read_1<-rowSums(count_contigs[,2:ncol(count_contigs)]%>%  summarize_if(is.numeric, sum, na.rm=TRUE))
+```
+
+### Step.2 Remove duplicates
+
+```{r Step.2 Remove duplicates, echo=TRUE}
+
+#Remove duplicated species with multiple tax_id
+dedu<-dedupl(taxo_1,stats_by_qseqid_1)
+stats_by_qseqid_2<-dedu$blst_tbl_dedup
+taxo_2<-dedu$tax_tbl_dedup
+
+#Calculate stat 
+num_contigs_2<- length(unique(stats_by_qseqid_2$qseqid))
+num_output_2<- length(stats_by_qseqid_2$qseqid)
+num_besth_2<- length(unique(stats_by_qseqid_2[!duplicated(stats_by_qseqid_2$qseqid),]$tax_id))
+num_tax_id_2<- length(unique(stats_by_qseqid_2$tax_id))
+num_read_2<-rowSums(count_contigs[,2:ncol(count_contigs)]%>%  summarize_if(is.numeric, sum, na.rm=TRUE))
+```
+
+### Step.3 Controls Filter
+
+```{r Step.3 Controls Filter, echo=TRUE}
+#Filter controls
+count_contigs_3 <- count_contigs
+#count_contigs_3<-fctrl(count_contigs, control)
+stats_by_qseqid_3<-subset(stats_by_qseqid_2, qseqid %in% count_contigs_3$qseqid)
+taxo_3<-subset(taxo_2, tax_id %in% stats_by_qseqid_3$tax_id)
+
+#Calculate stat 
+num_contigs_3<- length(unique(stats_by_qseqid_3$qseqid))
+num_output_3<- length(stats_by_qseqid_3$qseqid)
+num_besth_3<- length(unique(stats_by_qseqid_3[!duplicated(stats_by_qseqid_3$qseqid),]$tax_id))
+num_tax_id_3<- length(unique(stats_by_qseqid_3$tax_id))
+num_read_3<-rowSums(count_contigs_3[,2:ncol(count_contigs_3)-1]%>%  summarize_if(is.numeric, sum, na.rm=TRUE))
+```
+
+### Step.4 Coverage Filter
+
+```{r Step.4 Coverage Filter, echo=TRUE}
+#FIlter contigs on coverage
+filter.cov <- FALSE
+stats_by_qseqid_4<-fcover(stats_by_qseqid_3 ,cov_10x,filter=filter.cov)
+# stats_by_qseqid_4 <- stats_by_qseqid_3
+taxo_4<-subset(taxo_3, tax_id %in% stats_by_qseqid_4$tax_id)
+count_contigs_4<-subset(count_contigs_3, qseqid %in% stats_by_qseqid_4$qseqid)  
+
+#Calculate stat 
+num_contigs_4<- length(unique(stats_by_qseqid_4$qseqid))
+num_output_4<- length(stats_by_qseqid_4$qseqid)
+num_besth_4<- length(unique(stats_by_qseqid_4[!duplicated(stats_by_qseqid_4$qseqid),]$tax_id))
+num_tax_id_4<- length(unique(stats_by_qseqid_4$tax_id))
+num_read_4<-rowSums(count_contigs_4[,2:ncol(count_contigs_4)-1]%>%  summarize_if(is.numeric, sum, na.rm=TRUE))
+
+# If you won't cover filter
+
+```
+
+### Step.5 Unwanted Species Filter
+
+```{r Step.5 Unwanted Species Filter, echo=TRUE}
+#Remove unwanted species
+taxo_to_fil<-taxo_4[grepl("sp\\." ,taxo_4$species) | grepl("^uncultured " ,taxo_4$species),]       
+taxo_5<-anti_join(taxo_4, taxo_to_fil)
+stats_by_qseqid_5<-subset(stats_by_qseqid_4, tax_id %in% taxo_5$tax_id)
+count_contigs_5<-subset(count_contigs_4, qseqid %in% stats_by_qseqid_5$qseqid)
+count_contigs_5<-count_contigs_5[ , names(count_contigs_5) != "sum"]
+
+#Calculate stat 
+num_contigs_5<- length(unique(stats_by_qseqid_5$qseqid))
+num_output_5<- length(stats_by_qseqid_5$qseqid)
+num_besth_5<- length(unique(stats_by_qseqid_5[!duplicated(stats_by_qseqid_5$qseqid),]$tax_id))
+num_tax_id_5<- length(unique(stats_by_qseqid_5$tax_id))
+num_read_5<-rowSums(count_contigs_3[,2:ncol(count_contigs_5)-1]%>%  summarize_if(is.numeric, sum, na.rm=TRUE))
+```
+
+### Step.6 Blast Clustering
+
+```{r Step.6 Blast Clustering, echo=TRUE}
+#Clustering based on blast output
+stats_by_qseqid_6<-clustma(stats_by_qseqid_5)
+
+#Calculate stat 
+num_contigs_6<- length(unique(stats_by_qseqid_6$qseqid))
+num_OTU_6 <- length(unique(stats_by_qseqid_6$grp))
+num_output_6<- length(stats_by_qseqid_6$qseqid)
+num_besth_6<- length(unique(stats_by_qseqid_6[!duplicated(stats_by_qseqid_6$qseqid),]$grp))
+num_tax_id_6<- length(unique(stats_by_qseqid_6$tax_id))
+num_read_6<-rowSums(count_contigs_3[,2:ncol(count_contigs_5)]%>%  summarize_if(is.numeric, sum, na.rm=TRUE))
+```
+
+### Step.7 Abundance Clustering
+
+```{r Step.7 Abundance Clustering, echo=TRUE}
+#Clustering with abundances
+stats_by_qseqid_7<-clustcount(stats_by_qseqid_6, count_contigs_5, prev=abundance.clust)
+
+#Calculate stat 
+num_contigs_7<- length(unique(stats_by_qseqid_7$qseqid))
+num_OTU_7 <- length(unique(stats_by_qseqid_7$MA_grp))
+num_output_7<- length(stats_by_qseqid_7$qseqid)
+num_besth_7<- length(unique(stats_by_qseqid_7[!duplicated(stats_by_qseqid_7$qseqid),]$MA_grp))
+num_tax_id_7<- length(unique(stats_by_qseqid_7$tax_id))
+num_read_7<-rowSums(count_contigs_3[,2:ncol(count_contigs_5)]%>%  summarize_if(is.numeric, sum, na.rm=TRUE))
+```
+
+### Step.8 Merge Taxo
+
+```{r Step.8 Merge Taxo, echo=TRUE}
+#Merge multi-affiliation taxo
+taxo_8<-mergetaxo(stats_by_qseqid_7, taxo_5)
+```
+
+### Step.9 Merge table
+
+```{r Step.9 Merge, echo=TRUE}
+library(plyr)
+merging<-cleaned_merge(stats_by_qseqid_7, count_contigs_5[ , names(count_contigs_5) != "sum"])
+stats_by_qseqid_9<-merging[[1]]
+otu_table<-merging[[2]]
+otu_stat<-merging[[3]]
+
+#Calculate stat 
+num_contigs_9<- length(unique(stats_by_qseqid_9$qseqid))
+num_OTU_9 <- length(unique(stats_by_qseqid_9$MA_grp))
+num_output_9<- length(stats_by_qseqid_9$qseqid)
+num_besth_9<- length(unique(stats_by_qseqid_9[!duplicated(stats_by_qseqid_9$qseqid),]$MA_grp))
+num_tax_id_9<- length(unique(stats_by_qseqid_9$tax_id))
+```
+
+### Write final output
+
+```{r Step.10 Final Output, echo=TRUE}
+write.csv(stats_by_qseqid_9,output_blast, row.names = FALSE)
+write.csv(taxo_8,output_taxo, row.names = FALSE)
+write.csv(otu_stat,output_otu_stat, row.names = FALSE)
+write.csv(otu_table,output_count, row.names = FALSE)
+stats_by_qseqid_10<-stats_by_qseqid_9 %>% left_join(taxo_5, by = "tax_id")
+write.csv(stats_by_qseqid_10,output_stat_qseqid , row.names = FALSE)
+```
+
+## Merge table
+
+```{python, echo=FALSE, message = FALSE, warning = TRUE}
+# For remove python warning in report
+import warnings
+warnings.filterwarnings('ignore')
+# Import pandas libraby
+import pandas as pd
+import os
+# Import taxo file
+taxo = pd.read_csv(r.output_taxo)
+MA_taxid = taxo[['MA_grp','tax_id']] # This line keep only the best Tax_id for each Ma_grp
+# Import blast info
+blast = pd.read_csv(r.output_blast,low_memory=False)
+# Import Count table
+count = pd.read_csv(r.output_count)
+# Merge blast and Taxo info, here we keep only blast information for the best Tax_id for each Ma_grp (of MA_taxid)
+blast = blast.merge(MA_taxid,how='inner',on=['MA_grp','tax_id'])
+# Keep only best-hit
+blast= blast.drop_duplicates(subset=['qseqid'], keep='first')
+# Group blast & Taxo information by Ma_grp
+blast_mean = blast.groupby('MA_grp')
+# Calculate mean score for blast result
+blast_mean = blast_mean.mean()
+# Keep only interest colonne
+columns_to_keep = ['qlen','slen','length','qcovhsp','pident','evalue','bitscore','min_coverage','max_coverage','mean_coverage','median_coverage','sum','max_pid_contig','max_bitscore_contig','inf10x']
+blast_mean = blast_mean[columns_to_keep]
+# Merge summary blast with taxo
+blast_mean = blast_mean.merge(taxo,how='inner',on=['MA_grp'])
+# Merge blast summaris & Taxo with count table
+blast_mean = blast_mean.merge(count,how='inner',on=['MA_grp'])
+# Remove duplicate row (Warning : explore why we have duplicate row)
+blast_mean = blast_mean.drop_duplicates(subset=['MA_grp'], keep='first')
+# Write merge table
+blast_mean.to_csv(r.final_table,sep='\t', index=False)
+```
+
+```{r Step.9 Table Output, echo=TRUE}
+library('DT')
+data <- py$blast_mean
+data <- data[1:ncol(data)]
+data = data[,!(names(data) %in% c("species_grp"))]
+datatable(data, caption =" Table n°1: Count Table",extensions = 'Buttons', options = list(dom = 'Blfrtip',buttons = c('copy', 'csv', 'excel', 'pdf', 'print'))) 
+```
+
+## Figure Result
+
+```{r Legend Fig, echo=TRUE}
+Legend <- c('Filter_bitscore','Duplicated_taxid','Filter_control', 'Coverage 10x', 'unwanted_species','Blast_clustering','Abundance clustering','Filter low count reads')
+```
+
+### Contigs Result
+
+```{r Fig.1 Contig, echo=TRUE}
+# Number contigs 
+contigs <- c(num_contigs_1, num_contigs_2, num_contigs_3, num_contigs_4, num_contigs_5, num_contigs_6, num_contigs_7, num_contigs_9)
+data_contigs <- data.frame(Legend,contigs)
+plot.contigs <- ggplot(data_contigs, aes(x=Legend,y=contigs, fill=Legend)) + 
+  geom_bar(stat='identity') + scale_x_discrete(limits=Legend)+
+  theme(legend.position = 'None', axis.text.x = element_text(angle = 45, hjust=1)) + labs(x='') +
+  geom_text(aes(label=contigs), vjust=1.6, color="black", size=3.5)
+plot.contigs
+```
+
+-----
+
+### OTU Result
+
+```{r Fig.2 OTU, echo=TRUE}
+# Number OTU 
+OTU <- c(num_contigs_1, num_contigs_2, num_contigs_3, num_contigs_4, num_contigs_5, num_OTU_6, num_OTU_7, num_OTU_9)
+data_OTU <- data.frame(Legend,OTU)
+plot.OTU <- ggplot(data_OTU, aes(x=Legend,y=OTU, fill=Legend)) + 
+  geom_bar(stat='identity') + scale_x_discrete(limits=Legend)+
+  theme(legend.position = 'None', axis.text.x = element_text(angle = 45, hjust=1)) + labs(x='') + 
+  geom_text(aes(label=OTU), vjust=1.6, color="black", size=3.5)
+plot.OTU
+```
+
+-----
+
+### Output Result
+
+```{r Fig.3 Output, echo=TRUE}
+# Number output
+output <- c(num_output_1, num_output_2, num_output_3, num_output_4, num_output_5, num_output_6, num_output_7, num_output_9)
+data_output <- data.frame(Legend,output)
+plot.output <- ggplot(data_output, aes(x=Legend,y=output, fill=Legend)) + 
+  geom_bar(stat='identity') + scale_x_discrete(limits=Legend)+
+  theme(legend.position = 'None', axis.text.x = element_text(angle = 45, hjust=1)) + labs(x='') + 
+  geom_text(aes(label=output), vjust=1.6, color="black", size=3.5)
+plot.output
+```
+
+-----
+
+### Reads Result
+
+```{r Fig.4 Reads, echo=TRUE}
+# Number reads
+num_read_9 <- num_read_7
+reads <- c(num_read_1, num_read_2, num_read_3, num_read_4, num_read_5, num_read_6, num_read_7, num_read_9)
+data_reads <- data.frame(Legend,reads)
+plot.reads <- ggplot(data_reads, aes(x=Legend,y=reads, fill=Legend)) + 
+  geom_bar(stat='identity') + scale_x_discrete(limits=Legend)+
+  theme(legend.position = 'None', axis.text.x = element_text(angle = 45, hjust=1)) + labs(x='') + 
+  geom_text(aes(label=reads), vjust=1.6, color="black", size=3.5)
+plot.reads
+```
+
+-----
+
+### Best Hit Result
+
+```{r Fig.5 Best Hit, echo=TRUE}
+# Number best hit
+best.hits <- c(num_besth_1, num_besth_2, num_besth_3, num_besth_4, num_besth_5, num_besth_6, num_besth_7, num_besth_9)
+data_bh <- data.frame(Legend,best.hits)
+plot.bh <- ggplot(data_bh, aes(x=Legend,y=best.hits, fill=Legend)) + 
+  geom_bar(stat='identity') + scale_x_discrete(limits=Legend)+
+  theme(legend.position = 'None', axis.text.x = element_text(angle = 45, hjust=1)) + labs(x='') + 
+  geom_text(aes(label=best.hits), vjust=1.6, color="black", size=3.5)
+plot.bh
+```
+
+-----
+
+### Taxid Result
+
+```{r Fig.6 Taxid, echo=TRUE}
+# Number taxid
+tax.id <- c(num_tax_id_1, num_tax_id_2, num_tax_id_3, num_tax_id_4, num_tax_id_5, num_tax_id_6, num_tax_id_7, num_tax_id_9)
+data_taxid <- data.frame(Legend,tax.id)
+plot.taxid <- ggplot(data_taxid, aes(x=Legend,y=tax.id, fill=Legend)) + 
+  geom_bar(stat='identity') + scale_x_discrete(limits=Legend)+
+  theme(legend.position = 'None', axis.text.x = element_text(angle = 45, hjust=1)) + labs(x='') + 
+  geom_text(aes(label=tax.id), vjust=1.6, color="black", size=3.5)
+plot.taxid
+```
+
+
+
+
+
+

@@ -22,6 +22,7 @@ def get_desired_ranks(taxids, desired_ranks):
 		lineage = ncbi.get_lineage(taxids)
 	except:
 		lineage = ncbi.get_lineage(1)
+	print(taxids,lineage)
 	lineage2ranks = ncbi.get_rank(lineage)
 	ranks2lineage = {}
 	for (taxid,rank) in lineage2ranks.items():

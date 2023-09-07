@@ -14,7 +14,7 @@ ext2=sys.argv[3]
 ext_file=sys.argv[4]
 run=sys.argv[5]
 out=sys.argv[9]
-
+output_directory=sys.argv[10]
 
 stats_df=pd.read_csv(sys.argv[6], sep=',').drop_duplicates()
 lin_df=pd.read_csv(sys.argv[7], sep=',').drop_duplicates()
@@ -42,9 +42,8 @@ for input_files in path_files :
 		csv_columns.append(file_name)
 		list_files.append(file_name)
 
-result_table = pd.DataFrame(columns=csv_columns,index=["Total read R1","Total read R2","Avg read length R1","Avg read length R2","Reads 1 cleaned","Reads 2 cleaned","Avg cleaned read length R1 (after cutadapt)","Avg cleaned read length R2 (after cutadapt)","Avg insert_size","Map on Diptera","UnMapped on Diptera","Map on bacteria","UnMapped on bacteria","Total pairs","Combined pairs","Widows","Assembled","Duplicates","Reads_count","Singletons","Nb of contigs","Min contigs length","Max contigs length","Avg contigs length","Contigs with viral hit","Nb of reads with viral hit 'inside' a contig","Nb of reads with viral hit as singleton","Reads with viral hit","% viral reads","Nb of viral hit 1 =< Reads < 10 ","Nb of viral hit 10 =< Reads < 100 ","Nb of viral hit 100 =< Reads < 1000","Nb of viral hit 1000 =< Reads < 10000","Nb of viral hit 10000=< Reads","Nb viral family","Nb viral genus","Nb viral species"])
-
-contig_length=pd.read_csv("logs/logsAssembly/"+run+"_assembly_stats.txt", sep='	')
+result_table = pd.DataFrame(columns=csv_columns,index=["Total read R1","Total read R2","Avg read length R1","Avg read length R2","Reads 1 cleaned","Reads 2 cleaned","Avg cleaned read length R1 (after cutadapt)","Avg cleaned read length R2 (after cutadapt)","Avg insert_size","Map on Diptera","UnMapped on Diptera","Map on bacteria","UnMapped on bacteria","Map on Host Genome","UnMapped Host Genome","Total pairs","Combined pairs","Widows","Assembled","Duplicates","Reads_count","Singletons","Nb of contigs","Min contigs length","Max contigs length","Avg contigs length","Contigs with viral hit","Nb of reads with viral hit 'inside' a contig","Nb of reads with viral hit as singleton","Reads with viral hit","% viral reads","Nb of viral hit 1 =< Reads < 10 ","Nb of viral hit 10 =< Reads < 100 ","Nb of viral hit 100 =< Reads < 1000","Nb of viral hit 1000 =< Reads < 10000","Nb of viral hit 10000=< Reads","Nb viral family","Nb viral genus","Nb viral species"])
+contig_length=pd.read_csv(f'{output_directory}/logs/02_assembly_results/logsAssembly/{run}_assembly_stats.txt', sep='	')
 stats_contigs=contig_length.iloc[:, 1].describe()
 
 contig_length.columns.values[0] = "qseqid"
@@ -52,8 +51,7 @@ contig_length.columns.values[0] = "qseqid"
 
 n=0
 for files_name in list_files :
-	print(files_name)
-	with open("logs/logscutadapt/"+files_name+ext1+"_cut1.log",'r') as cut1_1:
+	with open(f"{output_directory}/logs/01_read_processing/01_cutadapt/01_remove_sequencing_adapters/{files_name}{ext1}_Remove_sequencing_adapters.log",'r') as cut1_1:
 		for line in cut1_1:
 			if "Total reads processed" in line:
 				c = line.replace(',','').replace(' ','').replace('\n','').split(":")
@@ -62,7 +60,7 @@ for files_name in list_files :
 				c1 = line.replace(',','').replace('b',':').replace('\n','').replace(' ','').split(":")
 				result_table.at['Avg read length R1', files_name]="%.2f" % (int(c1[1])/int(c[-1]))
 	cut1_1.close()
-	with open("logs/logscutadapt/"+files_name+ext2+"_cut1.log",'r') as cut1_2:
+	with open(f"{output_directory}/logs/01_read_processing/01_cutadapt/01_remove_sequencing_adapters/{files_name}{ext2}_Remove_sequencing_adapters.log",'r') as cut1_2:
 		for line in cut1_2:
 			if "Total reads processed" in line:
 				c = line.replace(',','').replace(' ','').replace('\n','').split(":")
@@ -71,7 +69,8 @@ for files_name in list_files :
 				c1 = line.replace(',','').replace('b',':').replace('\n','').replace(' ','').split(":")
 				result_table.at['Avg read length R2', files_name]="%.2f" % (int(c1[1])/int(c[-1]))
 	cut1_2.close()
-	with open("logs/logscutadapt/"+files_name+ext1+"_cut2.log",'r') as cut2_1:
+
+	with open(f"{output_directory}/logs/01_read_processing/01_cutadapt/02_triming/{files_name}{ext1}_triming.log",'r') as cut2_1:
 		for line in cut2_1:
 			if "Reads written" in line:
 				c = line.replace(',','').replace('(',':').replace('\n','').replace(' ','').split(":")
@@ -80,7 +79,7 @@ for files_name in list_files :
 				c1 = line.replace(',','').replace('b',':').replace('\n','').replace(' ','').split(":")
 				result_table.at['Avg cleaned read length R1 (after cutadapt)', files_name]="%.2f" % (int(c1[1])/int(c[2]))
 	cut2_1.close()
-	with open("logs/logscutadapt/"+files_name+ext2+"_cut2.log",'r') as cut2_2:
+	with open(f"{output_directory}/logs/01_read_processing/01_cutadapt/02_triming/{files_name}{ext2}_triming.log",'r') as cut2_2:
 		for line in cut2_2:
 			if "Reads written" in line:
 				c = line.replace(',','').replace('(',':').replace('\n','').replace(' ','').split(":")
@@ -89,9 +88,8 @@ for files_name in list_files :
 				c1 = line.replace(',','').replace('b',':').replace('\n','').replace(' ','').split(":")
 				result_table.at['Avg cleaned read length R2 (after cutadapt)', files_name]="%.2f" % (int(c1[1])/int(c[2]))
 	cut2_2.close()
-	path="logs/insert_size/"+files_name+"_insert_size_metrics_"+run+".txt"
+	path=f"{output_directory}/logs/03_mapping_on_assembly/{files_name}_insert_size_metrics_{run}.txt"
 	files_insert=glob.glob(path)
-	print(files_insert)
 	with open(files_insert[0],'r') as insert:
 		for line in insert:
 			if "LIBRARY	READ_GROUP" in line:
@@ -99,7 +97,7 @@ for files_name in list_files :
 				c = line.split("\t")
 				result_table.at['Avg insert_size', files_name]="%.2f" % (float(c[5]))
 	insert.close()
-	with open("logs/logsFLASH/"+files_name+"_flash.log",'r') as flash:
+	with open(f"{output_directory}/logs/01_read_processing/07_flash_merge_pair/{files_name}q_flash.log",'r') as flash:
 		for line in flash:
 			if "Total pairs" in line:
 				c = line.replace('\n','').replace(' ','').split(":")
@@ -108,8 +106,7 @@ for files_name in list_files :
 				c = line.replace('\n','').replace(' ','').split(":")
 				result_table.at['Combined pairs', files_name]=int(c[1])
 	flash.close()
-	
-	path="logs/logs_coverage/"+files_name+"_coverage*"
+	path=f"{output_directory}/logs/03_mapping_on_assembly/03_CountsMapping/{files_name}_coverage*"
 	files_cov=glob.glob(path)
 	with open(files_cov[0],'r') as cov:
 		for line in cov:
@@ -123,8 +120,8 @@ for files_name in list_files :
 				c = line.split(":")
 				result_table.at['Singletons', files_name]=int(c[1])
 	cov.close()
-		
-	with open("logs/logsDuplicates/"+files_name+"_duplicates_pairs_"+run+".txt",'r') as dp,  open("logs/logsDuplicates/"+files_name+"_duplicates_wi_"+run+".txt",'r') as dw :
+
+	with open(f"{output_directory}/logs/03_mapping_on_assembly/01_mapping/{files_name}_duplicates_pairs_{run}.txt",'r') as dp,  open(f"{output_directory}/logs/03_mapping_on_assembly/01_mapping/{files_name}_duplicates_wi_{run}.txt",'r') as dw :
 		for line in dp :
 			if "READ:" in line:
 				reads_pair = int(line.replace('\n','').split(": ")[-1])
@@ -138,11 +135,10 @@ for files_name in list_files :
 				dup_wi = int(line.replace('\n','').split(": ")[-1])
 		result_table.at['Duplicates', files_name]=dup_pair+dup_wi
 		result_table.at['Assembled', files_name]=result_table.at['Duplicates', files_name]+result_table.at['Reads_count', files_name]
-	
 
-	
-	with open("logs/logs_contaminent/Stats_contaminent_"+files_name+".txt",'r') as conta:
 
+	with open(f"{output_directory}/logs/01_read_processing/Stats_contaminent_{files_name}.txt",'r') as conta:
+		print(files_name)
 		for line in conta:
 			if "Host_pair_R1" in line:
 				c = line.replace('\n','').split(":")
@@ -162,13 +158,24 @@ for files_name in list_files :
 				line = next(conta)
 				c = line.replace('\n','').split(":")
 				wi_b=c[1]
+				line = next(conta)
+				c = line.replace('\n','').split(":")
+				R1_gh=c[1]
+				line = next(conta)
+				c = line.replace('\n','').split(":")
+				R2_gh=c[1]
+				line = next(conta)
+				c = line.replace('\n','').split(":")
+				wi_gh=c[1]
 				result_table.at['Widows', files_name]=int(wi_b)
 				result_table.at['UnMapped on Diptera', files_name]=int(R1_h)+int(R2_h)+int(wi_h)
 				result_table.at['UnMapped on bacteria', files_name]=int(R1_b)+int(R2_b)+int(wi_b)
+				result_table.at['UnMapped Host Genome', files_name]=int(R1_gh)+int(R2_gh)+int(wi_gh)
 				result_table.at['Map on Diptera', files_name]=(int(result_table.at['Reads 1 cleaned', files_name])+int(result_table.at['Reads 2 cleaned', files_name]))-int(result_table.at['UnMapped on Diptera', files_name])
 				result_table.at['Map on bacteria', files_name]=result_table.at['UnMapped on Diptera', files_name]-result_table.at['UnMapped on bacteria', files_name]
+				result_table.at['Map on Host Genome', files_name]=result_table.at['UnMapped on bacteria', files_name]-result_table.at['UnMapped Host Genome', files_name]
 	conta.close()
-	print(df[files_name])
+	#print(df[files_name])
 	result_table.at['Nb viral family', files_name]=df[["family", files_name]][df[files_name]> 1].family.value_counts().count()
 	result_table.at['Nb viral genus', files_name]=df[["genus", files_name]][df[files_name]> 1].genus.value_counts().count()
 	result_table.at['Nb viral species', files_name]=df[["species", files_name]][df[files_name]> 1].species.value_counts().count()
@@ -190,6 +197,7 @@ for files_name in list_files :
 	result_table.at["Nb of reads with viral hit 'inside' a contig", files_name]=count_df[count_df[["qseqid",files_name]].qseqid.astype(str).str.startswith('k') | count_df[["qseqid",files_name]].qseqid.astype(str).str.startswith('C')][files_name].sum()
 	result_table.at["Nb of reads with viral hit as singleton", files_name]=count_df[~count_df[["qseqid",files_name]].qseqid.astype(str).str.startswith('k') & ~count_df[["qseqid",files_name]].qseqid.astype(str).str.startswith('C')][files_name].sum()
 	result_table.at['% viral reads', files_name]=round(result_table.loc["Reads with viral hit", files_name] *100 / (result_table.loc["Total read R1", files_name]+result_table.loc["Total read R1", files_name]),2)
+
 result_table.at['Nb of contigs', 'All-sample']=int(count_df_r.shape[0])-1
 result_table.at['Min contigs length', 'All-sample']=int(stats_contigs.iloc[3])
 result_table.at['Max contigs length', 'All-sample']=int(stats_contigs.iloc[7])
@@ -208,7 +216,7 @@ result_table.at['Nb of viral hit 100 =< Reads < 1000',  'All-sample']=spp.groupb
 result_table.at['Nb of viral hit 1000 =< Reads < 10000',  'All-sample']=spp.groupby(pd.cut(spp, ranges)).count().iloc[3]
 result_table.at['Nb of viral hit 10000=< Reads',  'All-sample']=spp[spp > 10000].count()
 
-row_sum=["Total read R1","Total read R2","Reads 1 cleaned","Reads 2 cleaned","Map on Diptera","UnMapped on Diptera","Map on bacteria","UnMapped on bacteria","Total pairs","Combined pairs","Widows","Assembled","Duplicates","Reads_count","Singletons","Nb of reads with viral hit 'inside' a contig","Nb of reads with viral hit as singleton","Reads with viral hit"]
+row_sum=["Total read R1","Total read R2","Reads 1 cleaned","Reads 2 cleaned","Map on Diptera","UnMapped on Diptera","Map on bacteria","UnMapped on bacteria","Map on Host Genome","UnMapped Host Genome","Total pairs","Combined pairs","Widows","Assembled","Duplicates","Reads_count","Singletons","Nb of reads with viral hit 'inside' a contig","Nb of reads with viral hit as singleton","Reads with viral hit"]
 
 row_mean=["Avg read length R1","Avg read length R2","Avg cleaned read length R1 (after cutadapt)","Avg cleaned read length R2 (after cutadapt)","Avg insert_size"]
 print("ok3")

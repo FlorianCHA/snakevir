@@ -1,40 +1,40 @@
-R1list=expand("FilteredFastq/{smp}.notCombined_1.fastq",smp=SAMPLES)
-R2list=expand("FilteredFastq/{smp}.notCombined_2.fastq",smp=SAMPLES)
-PElist=expand("FilteredFastq/filtered_{smp}_merged_widows.fastq",smp=SAMPLES)
+R1list=expand(f"{output_directory}/01_read_processing/07_flash_merge_pair/{{smp}}.notCombined_1.fastq",smp=SAMPLES)
+R2list=expand(f"{output_directory}/01_read_processing/07_flash_merge_pair/{{smp}}.notCombined_2.fastq",smp=SAMPLES)
+PElist=expand(f"{output_directory}/01_read_processing/08_concat_single/{{smp}}_widows.fastq",smp=SAMPLES)
 
 
 rule Megahit_Assembly:
     input:
-        R1s = expand("FilteredFastq/{smp}.notCombined_1.fastq",smp=SAMPLES),
-        R2s = expand("FilteredFastq/{smp}.notCombined_2.fastq",smp=SAMPLES),
-        PEs = expand("FilteredFastq/filtered_{smp}_merged_widows.fastq",smp=SAMPLES)
+        R1s = expand(f"{output_directory}/01_read_processing/07_flash_merge_pair/{{smp}}.notCombined_1.fastq",smp=SAMPLES),
+        R2s = expand(f"{output_directory}/01_read_processing/07_flash_merge_pair/{{smp}}.notCombined_2.fastq",smp=SAMPLES),
+        PEs = expand(f"{output_directory}/01_read_processing/08_concat_single/{{smp}}_widows.fastq",smp=SAMPLES)
     params:
-        prefix="Assembly_results",
+        prefix=f"{output_directory}/02_assembly_results",
+        tmp=f"{output_directory}/02_assembly_results_tmp",
         commaR1s = ",".join(R1list),
         commaR2s = ",".join(R2list),
         commaPEs = ",".join(PElist)
     output:
-        assembly = "Assembly_results/{RUN}.contigs.fa"
+        assembly = f"{output_directory}/02_assembly_results/{{RUN}}.contigs.fa"
     log:
-        "logs/logsAssembly/Megahit_{RUN}.log"
+        f"{output_directory}/logs/02_assembly_results/Megahit_{{RUN}}.log"
     threads: threads_Megahit_Assembly
     shell:
         """
-        touch Assembly_results/{wildcards.RUN}.contigs.fa
-        megahit -t {threads}  --mem-flag 2 -m 1 -1 {params.commaR1s} -2 {params.commaR2s} -r {params.commaPEs} -o Assembly_results_tmp --out-prefix {wildcards.RUN} --continue  2> {log}
-        rm -r Assembly_results
-        mv Assembly_results_tmp Assembly_results
+        if [ -e {params.tmp} ]; then rm -rf {params.tmp}; fi 
+        megahit -t {threads}  --mem-flag 2 -m 1 -1 {params.commaR1s} -2 {params.commaR2s} -r {params.commaPEs} -o {params.tmp} --out-prefix {wildcards.RUN} --continue  2> {log}
+        rm -rf {params.prefix}; mv {params.tmp} {params.prefix}
         """
 
 rule Cap3_Assembly:
     input:
         raw_assembly = rules.Megahit_Assembly.output.assembly
     output:
-        assembly="Assembly_results/{RUN}_Assembly_results",
-        contig="Assembly_results/{RUN}.contigs.fa.cap.contigs",
-        sig="Assembly_results/{RUN}.contigs.fa.cap.singlets"
+        assembly = f"{output_directory}/02_assembly_results/{{RUN}}_Assembly_results",
+        contig = f"{output_directory}/02_assembly_results/{{RUN}}.contigs.fa.cap.contigs",
+        sig = f"{output_directory}/02_assembly_results/{{RUN}}.contigs.fa.cap.singlets"
     log:
-        "logs/logsAssembly/CAP3_{RUN}.log"
+        f"{output_directory}/logs/02_assembly_results/cap3_{{RUN}}.log"
     shell:
         """
         cap3 {input.raw_assembly}>{output.assembly} 2> {log}
@@ -45,7 +45,7 @@ rule Merge_Mega_cap_contigs:
         contig = rules.Cap3_Assembly.output.contig,
         sig = rules.Cap3_Assembly.output.sig
     output:
-        final_assembly = "Assembly_results/{RUN}_contigs_assembly_results.fa"
+        final_assembly = f"{output_directory}/02_assembly_results/{{RUN}}_contigs_assembly_results.fa"
     shell:
         """
         cat {input.contig} {input.sig} > {output.final_assembly}
@@ -55,7 +55,7 @@ rule Assembly_informations:
     input:
         assembly = rules.Merge_Mega_cap_contigs.output.final_assembly
     output:
-        stat_assembly = "logs/logsAssembly/{RUN}_assembly_stats.txt"
+        stat_assembly = f"{output_directory}/logs/02_assembly_results/logsAssembly/{{RUN}}_assembly_stats.txt"
     shell:
         """
         bioawk -c fastx '{{ print $name, length($seq) }}' {input.assembly} | sed 's/      / /g' > {output.stat_assembly}
@@ -65,7 +65,7 @@ rule Index_Assembly:
     input:
         assembly = rules.Merge_Mega_cap_contigs.output.final_assembly
     output:
-        index = "Assembly_results/{RUN}_contigs_assembly_results.fa.bwt"
+        index = f"{output_directory}/02_assembly_results/{{RUN}}_contigs_assembly_results.fa.bwt"
     shell:
         """
         bwa index {input.assembly} > {output.index}

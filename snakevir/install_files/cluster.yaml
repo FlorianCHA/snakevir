@@ -1,62 +1,69 @@
 __default__:
   job-name: "{rule}"
-  queue: long
+  partition: agap_long
   nodes: '1'
-  cpu_task: '1'
-  log: cluster_log/{rule}_%j.out
+  cpus-per-task: '1'
+  output: cluster_log/{rule}_%j.out
+  error: cluster_log/{rule}_%j.err
+  time: 10-00:00:00
   mem: 10G
+  account: agap
   
 Quality_trimming:
-  queue: long
-  cpu_task: '4'
+  partition: agap_long
+  cpus-per-task: '4'
   
 Map_On_host:
-  queue: long
-  cpu_task: '4'
+  partition: agap_long
+  cpus-per-task: '4'
   mem: 20G
-  log: "/dev/null"
   
 Map_On_bacteria:
-  queue: long
-  cpu_task: '4'
+  partition: agap_long
+  cpus-per-task: '4'
+  mem: 20G
+ 
+bwa_genome_host_mapping:
+  partition: agap_long
+  cpus-per-task: '4'
   mem: 20G
   
 Megahit_Assembly:
-  queue: long
-  cpu_task: '8'
+  partition: agap_long
+  cpus-per-task: '8'
   mem: 40G
   
 Cap3_Assembly:
-  queue: long
-  cpu_task: '10'
+  partition: agap_long
+  cpus-per-task: '10'
   
 Map_On_Assembly:
-  queue: long
-  cpu_task: '4'
+  partition: agap_long
+  cpus-per-task: '4'
   mem: 20G
   
 Blast_contigs_on_nr:
-  queue: long
-  cpu_task: '2'
-  mem: 120G
+  partition: agap_bigmem
+  cpus-per-task: '1'
+  mem: 200G
   
 complete_taxo:
-  queue: long
-  cpu_task: '4'
+  partition: agap_long
+  cpus-per-task: '4'
   
 Blast_contigs_on_nt:
-  queue: long
-  cpu_task: '1'
+  partition: agap_long
+  cpus-per-task: '1'
   
 merge_depth:
-  queue: long
+  partition: agap_long
   mem: 75G
   
 range_depth:
-  queue: long
+  partition: agap_long
   mem: 40G
   
 stats_depth:
-  queue: long
+  partition: agap_long
   mem: 40G
 

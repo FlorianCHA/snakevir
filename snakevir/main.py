@@ -54,7 +54,7 @@ click.rich_click.OPTION_GROUPS = {
         },
         {
             "name": "PATH options",
-            "options": ["--fastq", "--path_diamond_nr", "--path_blast_nt"],
+            "options": ["--fastq", "--path_diamond_nr", "--path_blast_nt", "--host_genome"],
         },
         {
             "name": "Advanced options",
@@ -74,6 +74,8 @@ click.rich_click.OPTION_GROUPS = {
               help="Name of run (ex : HNXXXXXX)")
 @click.option('--fastq', '-f',  default="/PATH/TO/FASTQ/DIRECTORY/", type=click.Path(resolve_path=True),
               help="Path to the fastq directory")
+@click.option('--host_genome', '-g',  default="/PATH/TO/FASTA/GENOME/", type=click.Path(resolve_path=True),
+              help="Path to the fastq directory")
 @click.option('--r1', default="_1", show_default=True,
               help="Type of your R1 fastq files contains in FASTQ directory (for exemple : '_R1' or '_1', etc. )")
 @click.option('--r2', default="_2", show_default=True,
@@ -88,13 +90,13 @@ click.rich_click.OPTION_GROUPS = {
               help="Sequence of Adapter in 3'")
 @click.option('--A5', default="CATCACATAGGCGTCCGCTG", show_default=True,
               help="Sequence of Adapter in 5'")
-def make_config(name, fastq, r1, r2, ext, path_diamond_nr, path_blast_nt, a3, a5, output):
+def make_config(name, fastq, r1, r2, ext, path_diamond_nr, path_blast_nt, a3, a5, output, host_genome):
     """
     The command make_config is used for create config fime at yaml format for snakevir. You have 2 choice, you can use arguement
     for write all information needed in config or you can only use some argument (-o is mandatory) and wirte in the file after
     the missing information.
     """
-    __make_config(name, fastq, r1, r2, ext, path_diamond_nr, path_blast_nt, a3, a5, output)
+    __make_config(name, fastq, r1, r2, ext, path_diamond_nr, path_blast_nt, a3, a5, output, host_genome)
 
 @click.command("edit_cluster", short_help=f'Create cluster config file',
                context_settings=dict(max_content_width=800))
@@ -109,14 +111,15 @@ def edit_cluster(partition):
     __edit_cluster(partition)
 
 @click.command("run", short_help=f'Create cluster config file',
-               context_settings=dict(max_content_width=800))
+               context_settings={"ignore_unknown_options": True,"max_content_width" : 800})
 @click.option('--config', '-c',  type=str, required=True,
               help="Path of config file")
-def run(config):
+@click.argument('other_snakemake_option', nargs=-1, type=click.UNPROCESSED)
+def run(config, other_snakemake_option):
     """
     Run the snbakevir workflow.
     """
-    __run(config)
+    __run(config, other_snakemake_option)
 
 
 if Path(f'{Path(__file__).resolve().parent}/install_files/.install').exists():
