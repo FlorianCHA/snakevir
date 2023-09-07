@@ -18,7 +18,7 @@ import sys
 import os
 sys.path.insert(0, os.path.abspath('../../'))
 # The short X.Y version.
-version = "1.0.0"
+version = "2.0.0"
 
 
 rst_prolog = f"""

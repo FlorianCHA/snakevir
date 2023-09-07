@@ -8,7 +8,7 @@ from .function.install import __install
 from .function.make_config import __make_config
 from .function.run import __run
 
-version = "1.0.0"
+version = "2.0.0"
 
 click.rich_click.COMMAND_GROUPS = {
     "snakevir": [
