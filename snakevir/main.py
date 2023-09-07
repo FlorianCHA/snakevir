@@ -8,7 +8,7 @@ from .function.install import __install
 from .function.make_config import __make_config
 from .function.run import __run
 
-version = "2.0.0"
+version = "2.0.1"
 
 click.rich_click.COMMAND_GROUPS = {
     "snakevir": [
@@ -24,6 +24,7 @@ click.rich_click.COMMAND_GROUPS = {
 }
 
 @click.group(name=f"snakevir", invoke_without_command=True, no_args_is_help=True)
+@click.version_option(version)
 def main():
     """
     """
