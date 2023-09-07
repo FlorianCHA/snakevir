@@ -13,6 +13,7 @@ Install Snakevir from github
 First, install the Snakevir python package with github and pip.
 
 .. code-block:: bash
+
    python3 -m pip install snakevir
    snakevir --help
 
