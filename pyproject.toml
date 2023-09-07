@@ -7,8 +7,7 @@ name = "snakevir"
 version = "1.0.0"
 description = "This is a worflow that analyses some metagenomics data"
 authors = [
-    { name = "Florian CHARRIAT (CIRAD)", email = "florian.charriat@cirad.fr" },
-    { name = "Antoni Exbrayat (CIRAD)"}]
+    { name = "Florian CHARRIAT (CIRAD) & Antoni Exbrayat (CIRAD)", email = "florian.charriat@cirad.fr" }]
 dependencies = [
     "click",
     "rich_click",
