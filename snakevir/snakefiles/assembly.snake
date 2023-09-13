@@ -19,6 +19,7 @@ rule Megahit_Assembly:
     log:
         f"{output_directory}/logs/02_assembly_results/Megahit_{{RUN}}.log"
     threads: threads_Megahit_Assembly
+    envmodules: config['module_file']
     shell:
         """
         if [ -e {params.tmp} ]; then rm -rf {params.tmp}; fi 
@@ -35,6 +36,7 @@ rule Cap3_Assembly:
         sig = f"{output_directory}/02_assembly_results/{{RUN}}.contigs.fa.cap.singlets"
     log:
         f"{output_directory}/logs/02_assembly_results/cap3_{{RUN}}.log"
+    envmodules: config['module_file']
     shell:
         """
         cap3 {input.raw_assembly}>{output.assembly} 2> {log}
@@ -46,6 +48,7 @@ rule Merge_Mega_cap_contigs:
         sig = rules.Cap3_Assembly.output.sig
     output:
         final_assembly = f"{output_directory}/02_assembly_results/{{RUN}}_contigs_assembly_results.fa"
+    envmodules: config['module_file']
     shell:
         """
         cat {input.contig} {input.sig} > {output.final_assembly}
@@ -56,6 +59,7 @@ rule Assembly_informations:
         assembly = rules.Merge_Mega_cap_contigs.output.final_assembly
     output:
         stat_assembly = f"{output_directory}/logs/02_assembly_results/logsAssembly/{{RUN}}_assembly_stats.txt"
+    envmodules: config['module_file']
     shell:
         """
         bioawk -c fastx '{{ print $name, length($seq) }}' {input.assembly} | sed 's/      / /g' > {output.stat_assembly}
@@ -66,6 +70,7 @@ rule Index_Assembly:
         assembly = rules.Merge_Mega_cap_contigs.output.final_assembly
     output:
         index = f"{output_directory}/02_assembly_results/{{RUN}}_contigs_assembly_results.fa.bwt"
+    envmodules: config['module_file']
     shell:
         """
         bwa index {input.assembly} > {output.index}

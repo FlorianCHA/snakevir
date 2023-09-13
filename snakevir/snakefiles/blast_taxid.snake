@@ -7,6 +7,7 @@ rule Blast_contigs_on_nr:
         blastDBpath=base_nr,
         basetaxoDBpath=base_taxo
     threads: threads_Blast_contigs_on_nr
+    envmodules: config['module_file']
     shell:
         """
         diamond blastx -b 10.0 -c 1 -p {threads}  -d {params.blastDBpath} --more-sensitive --query {input.assembly} --max-hsps 1 --max-target-seqs 5 --taxonmap {params.basetaxoDBpath} -f 6 qseqid sseqid qlen slen length qstart qend sstart send qcovhsp pident evalue bitscore staxids --out {output.blast_raw};
@@ -18,6 +19,7 @@ rule Remove_poor_qual_Blast_unmapped_on_nr_vir:
     output:
         blast_tsv = f"{output_directory}/04_blast_output/01_blast_nr_results/Contigs_{{RUN}}.blast_nr_results.tsv"
     threads: 5
+    envmodules: config['module_file']
     shell:
         """
         awk '$3 >= 150 {{ print }}' {input.blast_raw} | awk '$5 >= 75 {{ print }}' > {output.blast_tsv}
@@ -30,6 +32,7 @@ rule log_diamond:
         blastcontigs_nr = rules.Remove_poor_qual_Blast_unmapped_on_nr_vir.output.blast_tsv
     output:
         log=f"{output_directory}/logs/04_blast_output/01_blast_nr_results/{{smp}}_{{RUN}}_diamond.txt"
+    envmodules: config['module_file']
     shell:
         """
         awk '{{print $1}}' {input.blastcontigs_nrvir} | sort -u | wc -l >> {output.log}
@@ -41,6 +44,7 @@ rule Join_seq_acc_taxo_nr:
         contigs = rules.Remove_poor_qual_Blast_unmapped_on_nr_vir.output.blast_tsv
     output:
         taxo = f"{output_directory}/04_blast_output/02_taxonomy/Seq_hits_info_{{RUN}}.csv"
+    envmodules: config['module_file']
     shell:
         """
         cat {input.contigs} | awk -F'\t' '$14!=""' | sort -u -k1,1 | sed "s/;/\t/g" | awk '{{print $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$(NF)}}'| sed "s/ /\t/g" |sed -e 's/\t/,/g'| sed -e '1i\qseqid,sseqid,qlen,slen,length,qstart,qend,sstart,send,qcovhsp,pident,evalue,bitscore,tax_id' > {output.taxo}
@@ -61,6 +65,7 @@ rule get_nr_lineage_from_taxids:
         com = f"{scriptdir}complet_taxo_dic_v3.py",
         pickle_shi = f"{scriptdir}correc_taxo.pickle",
         pickle_cust = f"{scriptdir}custom_taxo.pickle"
+    envmodules: config['module_file']
     shell:
         """
         sort -u -k1,1  {input.seq} |sed -e 's/;/,/g'| awk -F',' '{{print $NF}}'| sort -u | sed '/^$/d' | paste -s -d,| python {params.getr} {output.lin}
@@ -84,6 +89,7 @@ rule Build_array_coverage_nr:
     params:
         script = f"{scriptdir}build_count_table.py",
         countdir = f"{output_directory}/03_mapping_on_assembly/03_CountsMapping/"
+    envmodules: config['module_file']
     shell:
         """
         python {params.script} {params.countdir} {output.by_seq}
@@ -98,6 +104,7 @@ rule Count_coverage_raw_nr:
     params:
         script = f"{scriptdir}build_count_table.py",
         countdir = f"{output_directory}/03_mapping_on_assembly/02_CountsMapping_raw/"
+    envmodules: config['module_file']
     shell:
         """
         python {params.script} {params.countdir} {output.by_seq}
@@ -116,6 +123,7 @@ rule complete_taxo:
         script_compt = f"{scriptdir}complet_taxo_dic_v3.py",
         pickle_shi = f"{scriptdir}correc_taxo.pickle",
         pickle_cust = f"{scriptdir}custom_taxo.pickle"
+    envmodules: config['module_file']
     shell:
         """
         python {params.script_mult} {input.blast} {input.lin5c} {input.lin} tmp/lin.tmp
@@ -129,6 +137,7 @@ rule extract_viral_ids:
         sort_seq_ids = rules.get_nr_lineage_from_taxids.output.sort_seq_ids
     output:
         taxo = f"{output_directory}/04_blast_output/02_taxonomy/viral_contigs_ids_{{RUN}}.txt"
+    envmodules: config['module_file']
     shell:
         """
         for i in `awk -F',' '{{print $1}}' {input.lineage}|  sort -n ` ; do grep $i {input.sort_seq_ids} | awk '{{print $2}}'; done > {output.taxo}
@@ -141,6 +150,7 @@ rule extract_viral_contigs:
         viral_cont_IDS = rules.extract_viral_ids.output.taxo
     output:
         viral_cont =  f"{output_directory}/02_assembly_results/{{RUN}}_viral_contigs.fa"
+    envmodules: config['module_file']
     shell:
         """
         perl -ne 'if(/^>(\S+)/){{$c=$i{{$1}}}}$c?print:chomp;$i{{$_}}=1 if @ARGV' {input.viral_cont_IDS} {input.contig} > {output.viral_cont};
@@ -155,6 +165,7 @@ rule Blast_contigs_on_nt:
     params:
         blastDBpath=base_nt
     threads: threads_Blast_contigs_on_nt
+    envmodules: config['module_file']
     shell:
         """
         blastn -task blastn -db {params.blastDBpath} -query {input.viral_cont} -num_threads {threads}  -evalue 0.001  -max_hsps 1 -max_target_seqs 10 -outfmt "6 qseqid sseqid qlen slen length qstart qend sstart send qcovhsp pident evalue bitscore"  -out {output.blast}
@@ -165,6 +176,7 @@ rule extract_seq_acc:
         blast_result = rules.Blast_contigs_on_nt.output.blast
     output:
         temp = f"{output_directory}/04_blast_output/04_blast_nt_results/Contigs_{{RUN}}.blast_nt_results_tmp.tsv"
+    envmodules: config['module_file']
     shell:
         """
         awk -F'|' '{{print $1,$(NF-1)}}' {input.blast_result} | awk '{{$2="";print}}'| awk  '{{$2=substr($2,1, length($2)-2);print}}'| sort -u -k1,1 | sed 's/ /\t/g' |tee {output.temp} | awk '{{print $2}}' >  "tmp/sseq_ids.txt";
@@ -177,6 +189,7 @@ rule extract_tax_ids:
         tax_id = f"{output_directory}/04_blast_output/03_blast_nt_results/tax_ids_{{RUN}}.tsv"
     params:
         basetaxoDBpath=base_taxo_nt
+    envmodules: config['module_file']
     shell:
         """
         for i in `cat {input.acc_ids}` ; do LC_ALL=C  look $i {params.basetaxoDBpath} | awk '{{print $1,$3}}' >> {output.tax_id}; done || true
@@ -189,6 +202,7 @@ rule join_blst_tax:
         blst_ids = rules.extract_seq_acc.output.temp
     output:
         blst = f"{output_directory}/04_blast_output/05_taxonomy_nt/Seq_hit_nt_{{RUN}}.csv"
+    envmodules: config['module_file']
     shell:
         """
         awk 'NR==FNR{{a[$1]=$2;next}} ($2) in a{{print $0" "a[$2]}}'  {input.tax_ids}  {input.blst_ids} |awk '{{print $1 , $3}}'| sed 's/ /\t/g' > tmp/sseq_ids_tax_id.tsv
@@ -204,6 +218,7 @@ rule get_nt_lineage_from_taxids:
         stat = f"{output_directory}/04_blast_output/05_taxonomy_nt/stat_by_seq_nt_{{RUN}}.csv"
     params:
         f"{scriptdir}get_rank.py"
+    envmodules: config['module_file']
     shell:
         """
         sort -u -k1,1  {input.taxo} |sed -e 's/;/,/g'| awk -F',' '{{print $NF}}'| sort -u | sed '/^$/d' | paste -s -d,| python {params} {output.lin}
@@ -217,6 +232,7 @@ rule intergreted_vir_check:
         lineage = rules.complete_taxo.output.lineage
     output:
         tmp = f"{output_directory}/04_blast_output/interg_virus_{{RUN}}.csv"
+    envmodules: config['module_file']
     shell:
         """
         awk -F "," ' {{if ($17!="Viruses" && $17!="NA" && $10>25) print $0}}' {input.stat_nt} |sed -e 's/,/\t/g' > {output.tmp}
@@ -227,6 +243,7 @@ checkpoint split_viral_tax:
         taxo = f"{output_directory}/04_blast_output/02_taxonomy/lineage_5_hit_{RUN}_cor.csv" # Here RUN is variable because we haven't RUN in ouput
     output:
         directory(f"{output_directory}/05_depth/split_vir")
+    envmodules: config['module_file']
     shell:
         """
         mkdir -p {output}
@@ -242,6 +259,7 @@ rule get_host:
     params:
         script = f"{scriptdir}get_host.py",
         host_db = f"{scriptdir}virushostdb1_21.csv"
+    envmodules: config['module_file']
     shell:
         """
         python {params.script} {input.acc_ids} {input.by_seq} {params.host_db} {output.split_host_tax}
@@ -260,6 +278,7 @@ rule join_host_tax:
         aggregate_input_host
     output:
         host_lineage=f"{output_directory}/06_final_data/hosts_lineage_{{RUN}}.csv"
+    envmodules: config['module_file']
     shell:
         """
         echo "tax_id,hosts_taxon,hosts_gb,hosts_tax_id,hosts_superkingdom,hosts_kingdom,hosts_phylum,hosts_class,hosts_order,hosts_family,hosts_subfamily,hosts_genus,hosts_species">{output.host_lineage}
@@ -273,6 +292,7 @@ rule merge_vir_check:
         lineage = rules.complete_taxo.output.lineage
     output:
         vir_ch = f"{output_directory}/04_blast_output/05_taxonomy_nt/intergreted_vir_check_{{RUN}}.csv"
+    envmodules: config['module_file']
     shell:
         """
         awk -F',' '{{print $1}}' {input.lineage}| grep -wf - {input.stat} | awk -F"[\t, ]" 'FNR==NR&&NR!=1{{a[$1]="YES"}}  FNR!=NR{{OFS=",";if(FNR!=1){{$(NF+1)=a[$1]}};print}}'  {input.tmp} - |awk -F',' '!$NF {{OFS=","; $NF="NO" }}1' >  {output.vir_ch}
@@ -285,6 +305,7 @@ rule log_Quantify_contigs_coverage_raw:
         viral_cont = rules.extract_viral_ids.output.taxo
     output:
         coverage = f"{output_directory}/05_depth/00_Coverage_raw/{{smp}}_coverage_raw_{{RUN}}.txt"
+    envmodules: config['module_file']
     shell:
         """
         xargs -I @ grep -w -m 1 @ {input.mapped} | < {input.viral_cont}| awk '{{ sum+=$2 }} END {{print "Mapped:" sum }}' - >> {output.coverage}

@@ -10,6 +10,7 @@ rule Remove_sequencing_adapters:
     params:
         A3 = config["A3"],
         A5 = config["A5"]
+    envmodules: config['module_file']
     shell:
         """
         cutadapt -n 10 -g {params.A5} -a {params.A3} -j 0 --overlap 15  {input.fastq} -o {output.cutadapt_file} &> {log.log}
@@ -27,6 +28,7 @@ rule Quality_trimming:
         f"{output_directory}/logs/01_read_processing/01_cutadapt/02_triming/{{readfile}}_triming.log"
     benchmark:
         f"{output_directory}/benchmarks/{{readfile}}.cutadapt_triming.benchmark.txt"
+    envmodules: config['module_file']
     shell:
         """
         cutadapt -q 30,30 -j 0 -m 40 -o {output.fastq_trim} {input.cutadapt_file} &> {log}
@@ -47,6 +49,7 @@ rule Repair_Pairs:
         f"{output_directory}/logs/01_read_processing/01_cutadapt/03_repair_pairs/{{smp}}_repair.log"
     benchmark:
         f"{output_directory}/benchmarks/{{smp}}.repair_pairs.benchmark.txt"
+    envmodules: config['module_file']
     shell:
         """
         python2 {params} {input.R1} {input.R2} {output.R1} {output.R2} {output.WI} 2> {log}
@@ -70,6 +73,7 @@ rule Map_On_host:
     benchmark:
         f"{output_directory}/benchmarks/{{smp}}.HostMapping.benchmark.txt"
     threads: threads_Map_On_host
+    envmodules: config['module_file']
     shell:
         """
         if [ -s {input.R1} ] && [ -s {input.R2} ]
@@ -102,6 +106,7 @@ rule Extract_Unmapped_host_Reads:
         WI = f"{output_directory}/01_read_processing/03_filtered_fastq_host_mapping/filtered_diptera_{{smp}}_widows.fastq"
     benchmark:
         f"{output_directory}/benchmarks/{{smp}}.filtered_fastq_host_mapping.benchmark.txt"
+    envmodules: config['module_file']
     shell:
         """
         if [ -s {input.sam_pairs} ]
@@ -138,8 +143,8 @@ rule Map_On_bacteria:
         f"{output_directory}/benchmarks/{{smp}}.Bacteria_mapping.benchmark.txt"
     log:
         f"{output_directory}/logs/01_read_processing/04_Bacteria_mapping/{{smp}}_Bacteria_mapping.log"
-
     threads: threads_Map_On_bacteria
+    envmodules: config['module_file']
     shell:
         """
 
@@ -173,6 +178,7 @@ rule Extract_Unmapped_bact_Reads:
         WI =  f"{output_directory}/01_read_processing/05_filtered_fastq_bacteria_mapping/filtered_bacteria_{{smp}}_widows.fastq"
     benchmark:
         f"{output_directory}/benchmarks/{{smp}}.filtered_fastq_bacteria_mapping.benchmark.txt"
+    envmodules: config['module_file']
     shell:
         """
         if [ -s {input.sam_pairs} ]
@@ -200,6 +206,7 @@ rule bwa_index:
         index = f'{config["host_genome"]}.amb'
     log:
         f"{output_directory}/logs/01_read_processing/06_filtered_fastq_host_genome_mapping/host_genome_index.log"
+    envmodules: config['module_file']
     shell:
         """
         bwa index {input.reference_genome} 2> {log}
@@ -218,6 +225,7 @@ rule bwa_genome_host_mapping:
         WI_sam = f"{output_directory}/01_read_processing/06_filtered_fastq_host_genome_mapping/filtered_bacteria_{{smp}}widows.sam"
     log:
         f"{output_directory}/logs/01_read_processing/06_filtered_fastq_host_genome_mapping/{{smp}}_host_genome_mapping.log"
+    envmodules: config['module_file']
     shell:
         """
         if [ -s {input.R1} ] && [ -s {input.R2} ]
@@ -247,6 +255,7 @@ rule Extract_Unmapped_genome_host_Reads:
         WI= f"{output_directory}/01_read_processing/06_filtered_fastq_host_genome_mapping/filtered_bacteria_{{smp}}_widows.fastq"
     benchmark:
         f"{output_directory}/benchmarks/{{smp}}.filtered_fastq_genome_host_mapping.benchmark.txt"
+    envmodules: config['module_file']
     shell:
         """
         if [ -s {input.sam_pairs} ]
@@ -279,6 +288,7 @@ rule log_map_conta:
         genome_host_WI= rules.Extract_Unmapped_genome_host_Reads.output.WI
     output:
         stat_conta = f"{output_directory}/logs/01_read_processing/Stats_contaminent_{{smp}}.txt"
+    envmodules: config['module_file']
     shell:
         """
         awk '{{s++}}END{{print "Host_pair_R1 : " s/4}}' {input.host_pairs_R1} >> {output.stat_conta};
@@ -309,6 +319,7 @@ rule Merge_Pairs_With_Flash:
         f"{output_directory}/benchmarks/{{smp}}.flash_merge.benchmark.txt"
     log:
         f"{output_directory}/logs/01_read_processing/07_flash_merge_pair/{{smp}}_flash.log"
+    envmodules: config['module_file']
     shell:
         """
         flash -M 250 {input.pairs_R1} {input.pairs_R2} -d {params.directory} -o {params.prefix} &> {log}
@@ -323,6 +334,7 @@ rule Concatenate_Widows_And_Merged:
         final = f"{output_directory}/01_read_processing/08_concat_single/{{smp}}_widows.fastq"
     benchmark:
         f"{output_directory}/benchmarks/{{smp}}.concat_single.benchmark.txt"
+    envmodules: config['module_file']
     shell:
         """
         cat {input.Merged} {input.WI} > {output.final}

@@ -100,6 +100,7 @@ rule Create_logs_report:
         output_directory = output_directory,
         ext=ext_R1+ext,
         script=scriptdir+"create_results_doc_new.py"
+    envmodules: config['module_file']
     shell:
         """
         python {params.script} {params.files} {ext_R1} {ext_R2} {ext} {RUN} {input.by_seq}   {input.lineage}    {input.count_t}  {output} {params.output_directory}
@@ -112,6 +113,7 @@ rule Add_vir_to_blastn:
         interg_virus = rules.intergreted_vir_check.output.tmp,
     output:
         blast_add_vir = f"{output_directory}/06_final_data/Blast_5_hit_{{RUN}}_add_vir.csv"
+    envmodules: config['module_file']
     shell:
         """
         grep -Fw -f {input.virald_ids} {input.blast_5_hit}  | awk -F"[\t, ]" 'FNR==NR&&NR!=1{{a[$1]="YES"}} FNR!=NR{{OFS=",";if(FNR!=1){{$(NF+1)= (NR==1 ? "is_vir" : a[$1])}}1;print}}' {input.interg_virus} -  |awk -F',' '!$NF {{OFS=","; $NF="NO" }}1' > {output.blast_add_vir}
@@ -134,6 +136,7 @@ rule Clustering_OTU:
         min_read_by_sample = 1,
         min_read_by_contig = 1,
         run_name = RUN
+    envmodules: config['module_file']
     shell:
         """
         Rscript -e 'rmarkdown::render("{params.script}", output_file="{output.directory}", quiet=TRUE, params = list(output_directory = "{output.directory}", blast_file = "{input.blast_file}", taxo_file = "{input.taxo_file}", host_file = "{input.host_file}", count_file = "{input.count_file}", cov10_file = "{input.cov10_file}", coverage_stat_file = "{input.coverage_stat_file}", min_read_by_sample = {params.min_read_by_sample}, min_read_by_contig = {params.min_read_by_contig} ,run_name = "{params.run_name}"))'

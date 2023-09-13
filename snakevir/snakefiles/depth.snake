@@ -3,6 +3,7 @@ rule depth:
         bam =  rules.Map_On_Assembly.output.merged
     output:
         depth = f"{output_directory}/05_depth/{{smp}}.{{RUN}}.cov"
+    envmodules: config['module_file']
     shell:
         """
         samtools depth -a {input.bam} -o {output.depth}
@@ -13,6 +14,7 @@ checkpoint split_contig:
         blast = rules.extract_viral_ids.output.taxo
     output:
         directory = directory(f"{output_directory}/05_depth/01_split_cont_{{RUN}}")
+    envmodules: config['module_file']
     shell:
         """
         mkdir -p {output}
@@ -25,6 +27,7 @@ rule Depth_vir:
         depth = rules.depth.output.depth
     output:
         split_cov = f"{output_directory}/05_depth/02_split_cont_cov_{{RUN}}/{{i}}.{{smp}}.cov"
+    envmodules: config['module_file']
     shell:
         """
         for i in `cat {input.viral_cont_IDS}` ; do rg -w $i {input.depth}  ; done > {output.split_cov} || true
@@ -39,6 +42,7 @@ rule merge_depth:
         split = "{i}",
         script = f"{scriptdir}merge_cov.py",
         dir = f"{output_directory}/05_depth/02_split_cont_cov_{{RUN}}/"
+    envmodules: config['module_file']
     shell:
         """
         python {params.script} {params.dir} {params.split} {output.coverage}
@@ -51,6 +55,7 @@ rule stats_depth:
         stat_cov = f"{output_directory}/05_depth/03_split_cont_stat_{{RUN}}/stats_coverage_{{i}}.cov"
     params:
         script = f"{scriptdir}stats_coverage.py"
+    envmodules: config['module_file']
     shell:
         """
         python {params.script} {input.coverage} {output.stat_cov}
@@ -63,6 +68,7 @@ rule range_depth:
         cov_10x = f"{output_directory}/05_depth/04_split_cont_10X_{{RUN}}/range_10x_coverage_{{i}}.cov"
     params:
         script = f"{scriptdir}count_range_cov.py"
+    envmodules: config['module_file']
     shell:
         """
         python {params.script} {input.coverage} {output.cov_10x}
@@ -90,6 +96,7 @@ rule results_depth:
     output:
         stats_deph = f"{output_directory}/06_final_data/{{RUN}}_stats_coverage.cov",
         range_10x = f"{output_directory}/06_final_data/{{RUN}}_range_10x_coverage.cov"
+    envmodules: config['module_file']
     shell:
         """
         echo "contig,min_coverage,max_coverage, mean_coverage,median_coverage" > {output.stats_deph}
