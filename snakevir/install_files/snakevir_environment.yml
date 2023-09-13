@@ -20,7 +20,7 @@ dependencies:
   - csvkit=1.0.5
   - cutadapt=3.4
   - diamond==2.0.9
-  - entrez-direct=13.9
+  - entrez-direct
   - ete3=3.1.2
   - flash=1.2.11
   - megahit=1.2.9
