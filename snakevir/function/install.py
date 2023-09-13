@@ -43,7 +43,7 @@ def install_conda_env(path, install_path, tool, skip):
     # Path to directory install
     path_conda = f'{path}/snakevir_env'
     # Command for conda installation of snakevire env
-    cmd = f'conda env create --prefix {path_conda} -f {install_path}/snakevir_environment.yml'
+    cmd = f'mamba env create --prefix {path_conda} -f {install_path}/snakevir_environment.yml'
     # If conda env already exist, check if we re-install it or no
     if Path(path_conda).exists():
         # Check if we need to skip this function
@@ -56,7 +56,7 @@ def install_conda_env(path, install_path, tool, skip):
         else:
             value = "y"
         if value == 'y':
-            command = f'conda env remove -p {path_conda}'
+            command = f'mamba env remove -p {path_conda}'
             subprocess.run(command, shell=True, check=False, stdout=sys.stdout, stderr=sys.stderr)
         # If no, the new command line is nothing.
         else:

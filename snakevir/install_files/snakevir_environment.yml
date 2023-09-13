@@ -4,12 +4,17 @@ channels:
   - bioconda
   - defaults
 dependencies:
+  - perl-common-sense
+  - perl
+  - perl-json-xs<3
+  - perl-JSON
+  - libgcc-ng
   - r-base=4.0.5
   - r-rmarkdown
   - r-rmdformats
   - bioawk=1.0
   - biopython=1.78
-  - blast=2.11.0
+  - blast=2.12.0
   - bwa=0.7.17
   - cap3=10.2011
   - csvkit=1.0.5
