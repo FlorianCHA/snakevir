@@ -27,6 +27,7 @@ click.rich_click.COMMAND_GROUPS = {
 @click.version_option(version)
 def main():
     """
+    Documentation :  https://snakevir.readthedocs.io/en/latest/
     """
 
 @click.command("install_cluster", short_help=f'Install snakevir on HPC cluster',
@@ -76,7 +77,7 @@ click.rich_click.OPTION_GROUPS = {
 @click.option('--fastq', '-f',  default="/PATH/TO/FASTQ/DIRECTORY/", type=click.Path(resolve_path=True),
               help="Path to the fastq directory")
 @click.option('--host_genome', '-g',  default="/PATH/TO/FASTA/GENOME/", type=click.Path(resolve_path=True),
-              help="Path to the fastq directory")
+              help="Path to the genome host at fasta format")
 @click.option('--r1', default="_1", show_default=True,
               help="Type of your R1 fastq files contains in FASTQ directory (for exemple : '_R1' or '_1', etc. )")
 @click.option('--r2', default="_2", show_default=True,
