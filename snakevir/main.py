@@ -8,7 +8,7 @@ from .function.install import __install
 from .function.make_config import __make_config
 from .function.run import __run
 
-version = "2.0.2"
+version = Path(__file__).parent.resolve().joinpath("VERSION").open("r").readline().strip()
 
 click.rich_click.COMMAND_GROUPS = {
     "snakevir": [
@@ -104,13 +104,15 @@ def make_config(name, fastq, r1, r2, ext, path_diamond_nr, path_blast_nt, a3, a5
                context_settings=dict(max_content_width=800))
 @click.option('--partition', '-p', default="False", type=str,
               help="Name of the default partition.")
-def edit_cluster(partition):
+@click.option('--edit', '-e', is_flag=True,
+              help="Edit cluster config for less/more ressources")
+def edit_cluster(partition,edit):
     """
     The command make_config is used for create config fime at yaml format for snakevir. You have 2 choice, you can use arguement
     for write all information needed in config or you can only use some argument (-o is mandatory) and wirte in the file after
     the missing information.
     """
-    __edit_cluster(partition)
+    __edit_cluster(partition,edit)
 
 @click.command("run", short_help=f'Create cluster config file',
                context_settings={"ignore_unknown_options": True,"max_content_width" : 800})

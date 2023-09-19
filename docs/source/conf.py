@@ -16,9 +16,11 @@
 import snakevir
 import sys
 import os
+from pathlib import Path
+
 sys.path.insert(0, os.path.abspath('../../'))
 # The short X.Y version.
-version = "2.0.2"
+version =  Path(__file__).resolve().parent.parent.parent.joinpath('snakevir').joinpath('VERSION').open("r").readline().strip()
 
 
 rst_prolog = f"""
