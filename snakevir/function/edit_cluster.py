@@ -5,7 +5,7 @@ import rich_click as click
 from pathlib import Path
 
 
-def __edit_cluster(partition,edit):
+def __edit_cluster(partition, account, edit):
     """
     The command make_config is used for create config fime at yaml format for snakevir. You have 2 choice, you can use arguement
     for write all information needed in config or you can only use some argument (-o is mandatory) and wirte in the file after
@@ -14,17 +14,19 @@ def __edit_cluster(partition,edit):
     # Path to install file (directory which contain the default config file
     install_path = f'{Path(__file__).resolve().parent.parent}/install_files'
     # Change partition name
-    if partition != "False":
-        new_cluster = list()
-        with open(f'{install_path}/cluster.yaml', 'r') as cluster_file:
-            for line in cluster_file:
-                if line.strip().startswith("partition:"):
-                    old_partition = line.strip().split(':')[-1].strip()
-                    line = line.replace(old_partition,partition)
-                new_cluster.append(line)
+    new_cluster = list()
+    with open(f'{install_path}/cluster.yaml', 'r') as cluster_file:
+        for line in cluster_file:
+            if line.strip().startswith("partition:"):
+                old_partition = line.strip().split(':')[-1].strip()
+                line = line.replace(old_partition,partition)
+            if line.strip().startswith("account:"):
+                old_account = line.strip().split(':')[-1].strip()
+                line = line.replace(old_account,account)
+            new_cluster.append(line)
 
-        with open(f'{install_path}/cluster.yaml', 'w') as new_file:
-            new_file.write("".join(new_cluster))
+    with open(f'{install_path}/cluster.yaml', 'w') as new_file:
+        new_file.write("".join(new_cluster))
 
     # Open editor to modify ressources
     if edit:
