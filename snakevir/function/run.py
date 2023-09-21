@@ -65,6 +65,13 @@ def verif_config(config):
         raise click.secho(
             f"ERROR: You'r blast nt database '{blast_nt}' doesn't exist, please check you're path",
             fg='red', bold=True, err=True)
+    silva_db = Path(data['rRNA_bact'])
+    silva_directory = silva_db.parent
+    nb_file = len(sorted(blast_directory.rglob(f'{name_database}*')))
+    if nb_file < 18:
+        raise click.secho(
+            f"ERROR: You'r silva database '{silva_db}' doesn't exist, please check you're path or re-install it with snakevir install_cluster.",
+            fg='red', bold=True, err=True)
 
 def __run(config, add_option):
     """

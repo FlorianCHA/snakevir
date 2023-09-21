@@ -13,7 +13,7 @@ def __edit_cluster(partition, account, edit):
     """
     # Path to install file (directory which contain the default config file
     install_path = f'{Path(__file__).resolve().parent.parent}/install_files'
-    # Change partition name
+    # Change partition names
     new_cluster = list()
     with open(f'{install_path}/cluster.yaml', 'r') as cluster_file:
         for line in cluster_file:
@@ -31,3 +31,16 @@ def __edit_cluster(partition, account, edit):
     # Open editor to modify ressources
     if edit:
         click.edit(require_save=True, extension='.yaml', filename=f'{install_path}/cluster.yaml')
+
+    # Check account (with groups shell command)
+    available_account = subprocess.check_output("groups", shell=True).decode("utf8").strip().split()
+    if account not in available_account:
+        raise click.secho(
+            f"ERROR: You'r account '{account}' doesn't exist, please check you're account.",
+            fg='red', bold=True, err=True)
+
+    available_partition = subprocess.check_output(r"""sinfo -s | cut -d" " -f1""", shell=True).decode("utf8").strip().replace('*','').split("\n")[1:]
+    if partition not in available_partition:
+        raise click.secho(
+            f"ERROR: You'r partition '{partition}' doesn't exist in this cluster , please check the partition available with sinfo command.",
+            fg='red', bold=True, err=True)
