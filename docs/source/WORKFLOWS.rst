@@ -86,7 +86,11 @@ If you installed snakevir and create the config file, you can now run:
 Output on Snakevir
 ===================
 
-To Add.
+The architecture of the Snakevir output is designed as follow:
+
+.. image:: _images/tree_output.png
+   :target: _images/tree_output.png
+   :alt: Tree output
 
 Report
 ======
