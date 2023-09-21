@@ -102,9 +102,9 @@ def make_config(name, fastq, r1, r2, ext, path_diamond_nr, path_blast_nt, a3, a5
 
 @click.command("edit_cluster", short_help=f'Create cluster config file',
                context_settings=dict(max_content_width=800))
-@click.option('--partition', '-p', default="long", type=str,
+@click.option('--partition', '-p', default="False", type=str,
               help="Name of the default partition.")
-@click.option('--account', '-a',  default="agap", type=str,
+@click.option('--account', '-a',  default="False", type=str,
               help="Name of you're account for launch job in cluster")
 @click.option('--edit', '-e', is_flag=True,
               help="Edit cluster config for less/more ressources")

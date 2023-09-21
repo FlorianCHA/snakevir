@@ -3,7 +3,10 @@
 # Module import
 import rich_click as click
 from pathlib import Path
-
+import subprocess
+from collections import defaultdict
+# import pyyaml module
+import yaml
 
 def __edit_cluster(partition, account, edit):
     """
@@ -13,16 +16,22 @@ def __edit_cluster(partition, account, edit):
     """
     # Path to install file (directory which contain the default config file
     install_path = f'{Path(__file__).resolve().parent.parent}/install_files'
-    # Change partition names
+    # Change partition & account names
     new_cluster = list()
     with open(f'{install_path}/cluster.yaml', 'r') as cluster_file:
         for line in cluster_file:
             if line.strip().startswith("partition:"):
-                old_partition = line.strip().split(':')[-1].strip()
-                line = line.replace(old_partition,partition)
-            if line.strip().startswith("account:"):
-                old_account = line.strip().split(':')[-1].strip()
-                line = line.replace(old_account,account)
+                if partition == "False": # Check if partition is give by user or not
+                    partition_default = line.strip().split(':')[-1].strip() # Retrieve partition from config if partition is not provide by user
+                else :
+                    old_partition = line.strip().split(':')[-1].strip()
+                    line = line.replace(old_partition,partition)
+            if line.strip().startswith("account:") :
+                if account == "False": # Check if account is give by user or not
+                    account_default = line.strip().split(':')[-1].strip() # Retrieve account from config if account is not provide by user
+                else :
+                    old_account = line.strip().split(':')[-1].strip()
+                    line = line.replace(old_account,account)
             new_cluster.append(line)
 
     with open(f'{install_path}/cluster.yaml', 'w') as new_file:
@@ -32,15 +41,27 @@ def __edit_cluster(partition, account, edit):
     if edit:
         click.edit(require_save=True, extension='.yaml', filename=f'{install_path}/cluster.yaml')
 
+    # Check parititon & account in config file after editing
+    partition_default = defaultdict(list) # For check all parition for each rules.
+    with open(f'{install_path}/cluster.yaml') as f:
+        data = yaml.safe_load(f)
+    for rule in data:
+        if "partition" in data[rule]:
+            partition_rule = data[rule]["partition"]
+            partition_default[partition_rule].append(rule)
+
     # Check account (with groups shell command)
     available_account = subprocess.check_output("groups", shell=True).decode("utf8").strip().split()
-    if account not in available_account:
+    if account_default not in available_account:
         raise click.secho(
-            f"ERROR: You'r account '{account}' doesn't exist, please check you're account.",
+            f"ERROR: You'r account '{account_default}' doesn't exist, please check you're account.",
             fg='red', bold=True, err=True)
 
+    # Check partition (with sinfo shell command)
     available_partition = subprocess.check_output(r"""sinfo -s | cut -d" " -f1""", shell=True).decode("utf8").strip().replace('*','').split("\n")[1:]
-    if partition not in available_partition:
-        raise click.secho(
-            f"ERROR: You'r partition '{partition}' doesn't exist in this cluster , please check the partition available with sinfo command.",
-            fg='red', bold=True, err=True)
+    for partition in partition_default :
+        if partition not in available_partition:
+            txt_rule = ", ".join(partition_default[partition])
+            raise click.secho(
+                f"ERROR: You'r partition '{partition}' for rule '{txt_rule}' doesn't exist in this cluster , please check the partition available with sinfo command.",
+                fg='red', bold=True, err=True)
