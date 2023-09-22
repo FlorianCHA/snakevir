@@ -52,7 +52,7 @@ def __edit_cluster(partition, account, edit):
             partition_rule = data[rule]["partition"]
             partition_default[partition_rule].append(rule)
     for rule in data:
-        if "partition" in data[rule]:
+        if "account" in data[rule]:
             account_rule = data[rule]["account"]
             account_default[account_rule].append(rule)
 
