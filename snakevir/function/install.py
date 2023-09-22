@@ -193,9 +193,9 @@ def __install(path, tool, database, skip):
                        'cluster: "slurm-submit.py"\n' \
                        'cluster-status: "slurm-status.py"\n' \
                        'max-jobs-per-second: 1\n' \
-                       'max-status-checks-per-second: 10\n' \
+                       'max-status-checks-per-second: 1\n' \
                        'local-cores: 1\n' \
-                       'jobs: 200\n' \
+                       'jobs: 100\n' \
                        'use-envmodules: true\n' \
                        'latency-wait: 1296000\n' \
                        'printshellcmds: true'
