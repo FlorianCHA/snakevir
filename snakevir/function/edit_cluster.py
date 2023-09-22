@@ -43,23 +43,31 @@ def __edit_cluster(partition, account, edit):
 
     # Check parititon & account in config file after editing
     partition_default = defaultdict(list) # For check all parition for each rules.
+    account_default = defaultdict(list) # For check all account for each rules.
+
     with open(f'{install_path}/cluster.yaml') as f:
         data = yaml.safe_load(f)
     for rule in data:
         if "partition" in data[rule]:
             partition_rule = data[rule]["partition"]
             partition_default[partition_rule].append(rule)
+    for rule in data:
+        if "partition" in data[rule]:
+            account_rule = data[rule]["account"]
+            account_default[account_rule].append(rule)
 
     # Check account (with groups shell command)
     available_account = subprocess.check_output("groups", shell=True).decode("utf8").strip().split()
-    if account_default not in available_account:
-        raise click.secho(
-            f"ERROR: You'r account '{account_default}' doesn't exist, please check you're account.",
-            fg='red', bold=True, err=True)
+    for account in account_default:
+        if account not in available_account:
+            txt_rule = ", ".join(partition_default[account])
+            raise click.secho(
+                f"ERROR: You'r account '{account_default}' for {txt_rule} doesn't exist, please check you're account.",
+                fg='red', bold=True, err=True)
 
     # Check partition (with sinfo shell command)
     available_partition = subprocess.check_output(r"""sinfo -s | cut -d" " -f1""", shell=True).decode("utf8").strip().replace('*','').split("\n")[1:]
-    for partition in partition_default :
+    for partition in partition_default:
         if partition not in available_partition:
             txt_rule = ", ".join(partition_default[partition])
             raise click.secho(
