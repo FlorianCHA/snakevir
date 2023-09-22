@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "snakevir"
-version = "2.0.7"
+version = "2.0.8"
 description = "This is a worflow that analyses some metagenomics data"
 authors = [
     { name = "Florian CHARRIAT (CIRAD) & Antoni Exbrayat (CIRAD)", email = "florian.charriat@cirad.fr" }]
