@@ -56,7 +56,7 @@ click.rich_click.OPTION_GROUPS = {
         },
         {
             "name": "PATH options",
-            "options": ["--fastq", "--path_diamond_nr", "--path_blast_nt", "--host_genome"],
+            "options": ["--fastq", "--path_diamond_nr", "--path_blast_nt", "--host_genome", "--output_directory"],
         },
         {
             "name": "Advanced options",
@@ -72,6 +72,8 @@ click.rich_click.OPTION_GROUPS = {
                context_settings=dict(max_content_width=800))
 @click.option('--output', '-o', type=click.Path(resolve_path=True), required=True,
               help="Path of the output file with '.yaml' extension (config.yml needed for snakevir.")
+@click.option('--output_directory', '-d', type=click.Path(resolve_path=True),
+              help="Path of the output directory for Snakevir's result.")
 @click.option('--name', '-n', default="RUN_NAME",
               help="Name of run (ex : HNXXXXXX)")
 @click.option('--fastq', '-f',  default="/PATH/TO/FASTQ/DIRECTORY/", type=click.Path(resolve_path=True),
@@ -92,13 +94,13 @@ click.rich_click.OPTION_GROUPS = {
               help="Sequence of Adapter in 3'")
 @click.option('--A5', default="CATCACATAGGCGTCCGCTG", show_default=True,
               help="Sequence of Adapter in 5'")
-def make_config(name, fastq, r1, r2, ext, path_diamond_nr, path_blast_nt, a3, a5, output, host_genome):
+def make_config(name, fastq, r1, r2, ext, path_diamond_nr, path_blast_nt, a3, a5, output, host_genome, output_directory):
     """
     The command make_config is used for create config fime at yaml format for snakevir. You have 2 choice, you can use arguement
     for write all information needed in config or you can only use some argument (-o is mandatory) and wirte in the file after
     the missing information.
     """
-    __make_config(name, fastq, r1, r2, ext, path_diamond_nr, path_blast_nt, a3, a5, output, host_genome)
+    __make_config(name, fastq, r1, r2, ext, path_diamond_nr, path_blast_nt, a3, a5, output, host_genome, output_directory)
 
 @click.command("edit_cluster", short_help=f'Create cluster config file',
                context_settings=dict(max_content_width=800))
