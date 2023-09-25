@@ -37,3 +37,7 @@ dependencies:
     - tabulate==0.8.9
     - pyyaml==6.0.1
     - ete3
+    - rich_click
+    - orffinder
+    - pyhmmer==0.6.2
+    - colored

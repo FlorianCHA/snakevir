@@ -15,6 +15,7 @@ ext_file=sys.argv[4]
 run=sys.argv[5]
 out=sys.argv[9]
 output_directory=sys.argv[10]
+diamond_merge_df=sys.argv[11]
 
 stats_df=pd.read_csv(sys.argv[6], sep=',').drop_duplicates()
 lin_df=pd.read_csv(sys.argv[7], sep=',').drop_duplicates()
@@ -33,7 +34,7 @@ tmp_df=df.iloc[:, np.r_[0,30:len(df. columns)]]
 tmp_df.to_csv(r'tmp_df.csv')
 
 
-df.to_csv(r'df.csv')
+df.to_csv(diamond_merge_df)
 csv_columns=['All-sample']
 list_files=[]
 for input_files in path_files :
