@@ -92,8 +92,4 @@ The architecture of the Snakevir output is designed as follow:
    :target: _images/tree_output.png
    :alt: Tree output
 
-Report
-======
-
-To add.
 

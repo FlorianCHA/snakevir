@@ -7,7 +7,7 @@ Snakevir is developed to work on an slurm HPC.
 
 ------------------------------------------------------------------------
 
-Install Snakevir from github
+Install Snakevir from pypi
 ============================
 
 First, install the Snakevir python package with github and pip.
@@ -16,6 +16,18 @@ First, install the Snakevir python package with github and pip.
 
    python3 -m pip install snakevir
    snakevir --help
+
+Update Snakevir from pypi
+============================
+
+.. code-block:: bash
+
+   python3 -m pip install -U snakevir
+   snakevir --version
+
+.. warning::
+
+    After updating Snakevir please re-use the snakevir install_cluster command on the same tools directory and then re-run the edit_cluster command with you're account and partition.
 
 ------------------------------------------------------------------------
 
@@ -41,15 +53,6 @@ For adapt the cluster configuration ou can use the `snakevir edit_cluster` comma
 .. click:: snakevir.main:edit_cluster
    :prog: snakevir edit_cluster
    :show-nested:
-
-2. Adapt tools
---------------
-
-As Snakevir uses many tools, you must install them using the `snakevir edit_tools` command.
-
-.. note::
-    This function is in progress.
-
 
 .. |PythonVersions| image:: https://img.shields.io/badge/python-3.7%2B-blue
    :target: https://www.python.org/downloads
