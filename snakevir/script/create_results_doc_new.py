@@ -97,7 +97,7 @@ for files_name in list_files :
 				c = line.split("\t")
 				result_table.at['Avg insert_size', files_name]="%.2f" % (float(c[5]))
 	insert.close()
-	with open(f"{output_directory}/logs/01_read_processing/07_flash_merge_pair/{files_name}q_flash.log",'r') as flash:
+	with open(f"{output_directory}/logs/01_read_processing/07_flash_merge_pair/{files_name}_flash.log",'r') as flash:
 		for line in flash:
 			if "Total pairs" in line:
 				c = line.replace('\n','').replace(' ','').split(":")
