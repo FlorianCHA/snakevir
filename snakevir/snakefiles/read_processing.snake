@@ -4,7 +4,7 @@ rule Remove_sequencing_adapters:
     input:
         fastq = f"{datadir}{{readfile}}{ext}"
     output:
-       cutadapt_file =  f"{output_directory}/01_read_processing/01_cutadapt/01_remove_sequencing_adapters/{{readfile}}.trimmed.fastq"
+       cutadapt_file =  temp(f"{output_directory}/01_read_processing/01_cutadapt/01_remove_sequencing_adapters/{{readfile}}.trimmed.fastq")
     log:
         log= f"{output_directory}/logs/01_read_processing/01_cutadapt/01_remove_sequencing_adapters/{{readfile}}_Remove_sequencing_adapters.log"
     params:
@@ -23,7 +23,7 @@ rule Quality_trimming:
     input:
         cutadapt_file = rules.Remove_sequencing_adapters.output.cutadapt_file
     output:
-        fastq_trim = f"{output_directory}/01_read_processing/01_cutadapt/02_triming/{{readfile}}.clean.fastq"
+        fastq_trim = temp(f"{output_directory}/01_read_processing/01_cutadapt/02_triming/{{readfile}}.clean.fastq")
     log:
         f"{output_directory}/logs/01_read_processing/01_cutadapt/02_triming/{{readfile}}_triming.log"
     benchmark:
@@ -64,10 +64,10 @@ rule Map_On_host:
         R2 = rules.Repair_Pairs.output.R2,
         WI = rules.Repair_Pairs.output.WI
     output:
-        bam_pairs = f"{output_directory}/01_read_processing/02_HostMapping/{{smp}}_dipteria_pairs.bam",
-        bam_WI = f"{output_directory}/01_read_processing/02_HostMapping/{{smp}}_dipteria_widows.bam",
-        sam_pairs = f"{output_directory}/01_read_processing/02_HostMapping/unmapped_{{smp}}_dipteria_pairs.sam",
-        sam_WI = f"{output_directory}/01_read_processing/02_HostMapping/unmapped_{{smp}}_dipteria_widows.sam"
+        bam_pairs = temp(f"{output_directory}/01_read_processing/02_HostMapping/{{smp}}_dipteria_pairs.bam"),
+        bam_WI = temp(f"{output_directory}/01_read_processing/02_HostMapping/{{smp}}_dipteria_widows.bam"),
+        sam_pairs = temp(f"{output_directory}/01_read_processing/02_HostMapping/unmapped_{{smp}}_dipteria_pairs.sam"),
+        sam_WI = temp(f"{output_directory}/01_read_processing/02_HostMapping/unmapped_{{smp}}_dipteria_widows.sam")
     log:
         f"{output_directory}/logs/01_read_processing/02_HostMapping/{{smp}}_bwa_pairs_on_dipt.log"
     benchmark:
@@ -101,9 +101,9 @@ rule Extract_Unmapped_host_Reads:
         sam_pairs = rules.Map_On_host.output.sam_pairs,
         sam_WI = rules.Map_On_host.output.sam_WI
     output:
-        pairs_R1 = f"{output_directory}/01_read_processing/03_filtered_fastq_host_mapping/filtered_diptera_{{smp}}_R1.fastq",
-        pairs_R2 = f"{output_directory}/01_read_processing/03_filtered_fastq_host_mapping/filtered_diptera_{{smp}}_R2.fastq",
-        WI = f"{output_directory}/01_read_processing/03_filtered_fastq_host_mapping/filtered_diptera_{{smp}}_widows.fastq"
+        pairs_R1 = temp(f"{output_directory}/01_read_processing/03_filtered_fastq_host_mapping/filtered_diptera_{{smp}}_R1.fastq"),
+        pairs_R2 = temp(f"{output_directory}/01_read_processing/03_filtered_fastq_host_mapping/filtered_diptera_{{smp}}_R2.fastq"),
+        WI = temp(f"{output_directory}/01_read_processing/03_filtered_fastq_host_mapping/filtered_diptera_{{smp}}_widows.fastq")
     benchmark:
         f"{output_directory}/benchmarks/{{smp}}.filtered_fastq_host_mapping.benchmark.txt"
     envmodules: config['module_file']
@@ -135,10 +135,10 @@ rule Map_On_bacteria:
         pairs_R2 = rules.Extract_Unmapped_host_Reads.output.pairs_R2,
         WI = rules.Extract_Unmapped_host_Reads.output.WI
     output:
-        bam_pairs = f"{output_directory}/01_read_processing/04_Bacteria_mapping/{{smp}}_bacteria_pairs.bam",
-        bam_WI = f"{output_directory}/01_read_processing/04_Bacteria_mapping/{{smp}}_bacteria_widows.bam",
-        sam_pairs = f"{output_directory}/01_read_processing/04_Bacteria_mapping/{{smp}}_bacteria_pairs.sam",
-        sam_WI = f"{output_directory}/01_read_processing/04_Bacteria_mapping/{{smp}}_bacteria_widows.sam"
+        bam_pairs = temp(f"{output_directory}/01_read_processing/04_Bacteria_mapping/{{smp}}_bacteria_pairs.bam"),
+        bam_WI = temp(f"{output_directory}/01_read_processing/04_Bacteria_mapping/{{smp}}_bacteria_widows.bam"),
+        sam_pairs = temp(f"{output_directory}/01_read_processing/04_Bacteria_mapping/{{smp}}_bacteria_pairs.sam"),
+        sam_WI = temp(f"{output_directory}/01_read_processing/04_Bacteria_mapping/{{smp}}_bacteria_widows.sam")
     benchmark:
         f"{output_directory}/benchmarks/{{smp}}.Bacteria_mapping.benchmark.txt"
     log:
@@ -221,8 +221,8 @@ rule bwa_genome_host_mapping:
         R2 = rules.Extract_Unmapped_bact_Reads.output.pairs_R2,
         WI = rules.Extract_Unmapped_bact_Reads.output.WI
     output:
-        mapped_sam = f"{output_directory}/01_read_processing/06_filtered_fastq_host_genome_mapping/filtered_bacteria_{{smp}}.sam",
-        WI_sam = f"{output_directory}/01_read_processing/06_filtered_fastq_host_genome_mapping/filtered_bacteria_{{smp}}widows.sam"
+        mapped_sam = temp(f"{output_directory}/01_read_processing/06_filtered_fastq_host_genome_mapping/filtered_bacteria_{{smp}}.sam"),
+        WI_sam = temp(f"{output_directory}/01_read_processing/06_filtered_fastq_host_genome_mapping/filtered_bacteria_{{smp}}widows.sam")
     log:
         f"{output_directory}/logs/01_read_processing/06_filtered_fastq_host_genome_mapping/{{smp}}_host_genome_mapping.log"
     envmodules: config['module_file']
@@ -250,9 +250,9 @@ rule Extract_Unmapped_genome_host_Reads:
         sam_pairs = rules.bwa_genome_host_mapping.output.mapped_sam,
         sam_WI =  rules.bwa_genome_host_mapping.output.WI_sam
     output:
-        new_R1 =  f"{output_directory}/01_read_processing/06_filtered_fastq_host_genome_mapping/filtered_bacteria_{{smp}}_R1.fastq",
-        new_R2 =  f"{output_directory}/01_read_processing/06_filtered_fastq_host_genome_mapping/filtered_bacteria_{{smp}}_R2.fastq",
-        WI= f"{output_directory}/01_read_processing/06_filtered_fastq_host_genome_mapping/filtered_bacteria_{{smp}}_widows.fastq"
+        new_R1 =  temp(f"{output_directory}/01_read_processing/06_filtered_fastq_host_genome_mapping/filtered_bacteria_{{smp}}_R1.fastq"),
+        new_R2 =  temp(f"{output_directory}/01_read_processing/06_filtered_fastq_host_genome_mapping/filtered_bacteria_{{smp}}_R2.fastq"),
+        WI=  temp(f"{output_directory}/01_read_processing/06_filtered_fastq_host_genome_mapping/filtered_bacteria_{{smp}}_widows.fastq")
     benchmark:
         f"{output_directory}/benchmarks/{{smp}}.filtered_fastq_genome_host_mapping.benchmark.txt"
     envmodules: config['module_file']
