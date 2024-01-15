@@ -45,4 +45,5 @@ dependencies:
     - orffinder
     - pyhmmer==0.6.2
     - colored
+    - psutil
 
