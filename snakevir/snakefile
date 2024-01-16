@@ -129,7 +129,7 @@ rule Clustering_OTU:
         cov10_file = rules.results_depth.output.range_10x,
         coverage_stat_file = rules.results_depth.output.stats_deph
     output:
-        directory = directory(f"{output_directory}/06_final_data/{{RUN}}_OTU"),
+        directory = directory(f"{output_directory}/06_final_data/{{RUN}}_OTU/"),
         report = f"{output_directory}/06_final_data/clustering_Report_{{RUN}}.html"
     params:
         script= f'{scriptdir}/clustering_Report.Rmd',
@@ -139,5 +139,5 @@ rule Clustering_OTU:
     envmodules: config['module_file']
     shell:
         """
-        Rscript -e 'rmarkdown::render("{params.script}", output_file="{output.directory}", quiet=TRUE, params = list(output_directory = "{output.directory}", blast_file = "{input.blast_file}", taxo_file = "{input.taxo_file}", host_file = "{input.host_file}", count_file = "{input.count_file}", cov10_file = "{input.cov10_file}", coverage_stat_file = "{input.coverage_stat_file}", min_read_by_sample = {params.min_read_by_sample}, min_read_by_contig = {params.min_read_by_contig} ,run_name = "{params.run_name}"))'
+        Rscript -e 'rmarkdown::render("{params.script}", output_file="{output.report}", quiet=TRUE, params = list(output_directory = "{output.directory}", blast_file = "{input.blast_file}", taxo_file = "{input.taxo_file}", host_file = "{input.host_file}", count_file = "{input.count_file}", cov10_file = "{input.cov10_file}", coverage_stat_file = "{input.coverage_stat_file}", min_read_by_sample = {params.min_read_by_sample}, min_read_by_contig = {params.min_read_by_contig} ,run_name = "{params.run_name}"))'
         """

@@ -104,6 +104,7 @@ coversage.stat.file <- params$coverage_stat_file
 ```{r output file, echo=TRUE}
 # Create OTU directory 
 dicrectory.output <- params$output_directory
+if (!dir.exists(dicrectory.output)){ dir.create(dicrectory.output)}
 # Retrieve date of Rmarckdown generation
 date.run <- format(Sys.time(), "%d_%m_%y")
 # Blast file
@@ -152,10 +153,6 @@ if(!require("ggplot2"))
 if(!require("igraph"))
   {
   install.packages('igraph')
-}
-if(!require("reticulate"))
-  {
-  install.packages('reticulate')
 }
 if(!require("plotly"))
   {
@@ -655,11 +652,11 @@ blast = blast.merge(MA_taxid,how='inner',on=['MA_grp','tax_id'])
 blast= blast.drop_duplicates(subset=['qseqid'], keep='first')
 # Group blast & Taxo information by Ma_grp
 blast_mean = blast.groupby('MA_grp')
-# Calculate mean score for blast result
-blast_mean = blast_mean.mean()
 # Keep only interest colonne
 columns_to_keep = ['qlen','slen','length','qcovhsp','pident','evalue','bitscore','min_coverage','max_coverage','mean_coverage','median_coverage','sum','max_pid_contig','max_bitscore_contig','inf10x']
 blast_mean = blast_mean[columns_to_keep]
+# Calculate mean score for blast result
+blast_mean = blast_mean.mean()
 # Merge summary blast with taxo
 blast_mean = blast_mean.merge(taxo,how='inner',on=['MA_grp'])
 # Merge blast summaris & Taxo with count table
