@@ -317,6 +317,8 @@ rule log_map_conta:
         unpack(input_genome)
     output:
         stat_conta = f"{output_directory}/logs/01_read_processing/Stats_contaminent_{{smp}}.txt"
+    params:
+        count = "s/4" if config['host_genome'] != "" else "0"
     envmodules: config['module_file']
     shell:
         """
@@ -326,9 +328,9 @@ rule log_map_conta:
         awk '{{s++}}END{{print "bact_pair_R1 : " s/4}}' {input.bact_pairs_R1} >> {output.stat_conta};
         awk '{{s++}}END{{print "bact_pairs_R2 : " s/4}}' {input.bact_pairs_R2} >> {output.stat_conta};
         awk '{{s++}}END{{print "bact_pair_wi : " s/4}}' {input.bact_WI} >> {output.stat_conta};
-        awk '{{s++}}END{{print "host_genome_pairs_R1 : " s/4}}' {input.genome_host_R1} >> {output.stat_conta};
-        awk '{{s++}}END{{print "host_genome_pairs_R2 : " s/4}}' {input.genome_host_R2} >> {output.stat_conta};
-        awk '{{s++}}END{{print "host_genome_pair_wi : " s/4}}' {input.genome_host_WI} >> {output.stat_conta};
+        awk '{{s++}}END{{print "host_genome_pairs_R1 : " params.count}}' {input.genome_host_R1} >> {output.stat_conta};
+        awk '{{s++}}END{{print "host_genome_pairs_R2 : " params.count}}' {input.genome_host_R2} >> {output.stat_conta};
+        awk '{{s++}}END{{print "host_genome_pair_wi : " params.count}}' {input.genome_host_WI} >> {output.stat_conta};
         """
 
 def verif_mapping(wildcards):
