@@ -2,6 +2,7 @@ import re
 import sys
 import os
 from os.path import join
+import pathlib
 import shutil
 
 
@@ -14,7 +15,7 @@ def errormes(mes):
 configfile : "config.yaml"
 cconfigfile : "config.yaml"
 datadir = config["fastq"]
-output_directory = config["output"]
+output_directory = pathlib.Path(config["output"]).resolve().as_posix()
 scriptdir = config["Scripts"]
 host_db = config["host_db"]
 rRNA_bact=config["rRNA_bact"]

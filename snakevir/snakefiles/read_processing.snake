@@ -245,6 +245,9 @@ rule bwa_genome_host_mapping:
         fi
         """
 
+
+
+
 rule Extract_Unmapped_genome_host_Reads:
     input:
         sam_pairs = rules.bwa_genome_host_mapping.output.mapped_sam,
@@ -275,17 +278,43 @@ rule Extract_Unmapped_genome_host_Reads:
         fi
         """
  # Extract some stats (logs) from the cleaning steps
+
+def stat_genome(wildcards):
+    """ Change stat if they have no mapping on genome host"""
+    dico_input = {}
+    if config['host_genome'] == "":
+        dico_input['stat_R1_genome'] = 'echo "host_genome_pair_R1 : 0"  >> {output.stat_conta};'
+        dico_input['stat_R2_genome'] = 'echo "host_genome_pairs_R2 : 0" >> {output.stat_conta} ;'
+        dico_input['stat_WI_genome'] = 'echo "host_genome_pair_wi : 0"  >> {output.stat_conta} ;'
+    else:
+        dico_input[
+            'stat_R1_genome'] = """awk '{{s++}}END{{print "host_genome_pairs_R1 : " s/4}}' {input.genome_host_R1} >> {output.stat_conta};"""
+        dico_input[
+            'stat_R2_genome'] = """awk '{{s++}}END{{print "host_genome_pairs_R2 : " s/4}}' {input.genome_host_R2} >> {output.stat_conta};"""
+        dico_input[
+            'stat_WI_genome'] = """awk '{{s++}}END{{print "host_genome_pair_wi : " s/4}}' {input.genome_host_WI} >> {output.stat_conta};"""
+    return (dico_input)
+
+def input_genome(wildcards):
+    """ Change input if they have no mapping on genome host"""
+    dico_input = { 'host_pairs_R1': rules.Extract_Unmapped_host_Reads.output.pairs_R1,
+        'host_pairs_R2': rules.Extract_Unmapped_host_Reads.output.pairs_R2,
+        'host_WI': rules.Extract_Unmapped_host_Reads.output.WI,
+        'bact_pairs_R1': rules.Extract_Unmapped_bact_Reads.output.pairs_R1,
+        'bact_pairs_R2': rules.Extract_Unmapped_bact_Reads.output.pairs_R2,
+        'bact_WI': rules.Extract_Unmapped_bact_Reads.output.WI ,
+        'genome_host_R1': rules.Extract_Unmapped_bact_Reads.output.pairs_R1,
+        'genome_host_R2': rules.Extract_Unmapped_bact_Reads.output.pairs_R2,
+        'genome_host_WI': rules.Extract_Unmapped_bact_Reads.output.WI                   }
+    if config['host_genome'] != "":
+        dico_input['genome_host_R1'] = rules.Extract_Unmapped_genome_host_Reads.output.new_R1
+        dico_input['genome_host_R2'] = rules.Extract_Unmapped_genome_host_Reads.output.new_R2
+        dico_input['genome_host_WI'] = rules.Extract_Unmapped_genome_host_Reads.output.WI
+    return(dico_input)
+
 rule log_map_conta:
     input:
-        host_pairs_R1 = rules.Extract_Unmapped_host_Reads.output.pairs_R1,
-        host_pairs_R2 = rules.Extract_Unmapped_host_Reads.output.pairs_R2,
-        host_WI = rules.Extract_Unmapped_host_Reads.output.WI,
-        bact_pairs_R1 = rules.Extract_Unmapped_bact_Reads.output.pairs_R1,
-        bact_pairs_R2 = rules.Extract_Unmapped_bact_Reads.output.pairs_R2,
-        bact_WI = rules.Extract_Unmapped_bact_Reads.output.WI,
-        genome_host_R1= rules.Extract_Unmapped_genome_host_Reads.output.new_R1,
-        genome_host_R2= rules.Extract_Unmapped_genome_host_Reads.output.new_R2,
-        genome_host_WI= rules.Extract_Unmapped_genome_host_Reads.output.WI
+        unpack(input_genome)
     output:
         stat_conta = f"{output_directory}/logs/01_read_processing/Stats_contaminent_{{smp}}.txt"
     envmodules: config['module_file']
@@ -302,11 +331,21 @@ rule log_map_conta:
         awk '{{s++}}END{{print "host_genome_pair_wi : " s/4}}' {input.genome_host_WI} >> {output.stat_conta};
         """
 
+def verif_mapping(wildcards):
+    """Check if host genome mapping is enable"""
+    dico_input = {}
+    if config["host_genome"] == "":
+        dico_input['pairs_R1'] = rules.Extract_Unmapped_bact_Reads.output.pairs_R1
+        dico_input['pairs_R2'] = rules.Extract_Unmapped_bact_Reads.output.pairs_R2
+    else:
+        dico_input['pairs_R1'] = rules.Extract_Unmapped_genome_host_Reads.output.new_R1
+        dico_input['pairs_R2'] = rules.Extract_Unmapped_genome_host_Reads.output.new_R2
+    return(dico_input)
+
 # Merge paired-end reads , 3 files where created on with de merde pairs and two for the unmerged R1 and R2
 rule Merge_Pairs_With_Flash:
     input:
-        pairs_R1 = rules.Extract_Unmapped_genome_host_Reads.output.new_R1,
-        pairs_R2 = rules.Extract_Unmapped_genome_host_Reads.output.new_R2
+        unpack(verif_mapping)
     params:
         directory = f"{output_directory}/01_read_processing/07_flash_merge_pair/",
         prefix = f"{{smp}}",
@@ -325,11 +364,18 @@ rule Merge_Pairs_With_Flash:
         flash -M 250 {input.pairs_R1} {input.pairs_R2} -d {params.directory} -o {params.prefix} &> {log}
         """
 
+def input_wi(wildcards):
+    """Check if host genome mapping is enable"""
+    dico_input = {"Merged" : rules.Merge_Pairs_With_Flash.output.ext}
+    if config["host_genome"] == "":
+        dico_input['WI'] = rules.Extract_Unmapped_bact_Reads.output.WI
+    else:
+        dico_input['WI'] = rules.Extract_Unmapped_bact_Reads.output.pairs_R2
+    return(dico_input)
 # Create a single file for merge and windows reads
 rule Concatenate_Widows_And_Merged:
     input:
-        Merged = rules.Merge_Pairs_With_Flash.output.ext,
-        WI = rules.Extract_Unmapped_genome_host_Reads.output.WI
+       unpack(input_wi)
     output:
         final = f"{output_directory}/01_read_processing/08_concat_single/{{smp}}_widows.fastq"
     benchmark:
