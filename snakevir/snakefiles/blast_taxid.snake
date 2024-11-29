@@ -192,12 +192,12 @@ rule extract_tax_ids:
     envmodules: config['module_file']
     shell:
         """
-        for i in `cat {input.acc_ids}` ; do LC_ALL=C  look $i {params.basetaxoDBpath} | awk '{{print $1,$3}}' >> {output.tax_id}; done || true
+        for i in `cat {input.acc_ids}` ; do LC_ALL=C  grep $i {params.basetaxoDBpath} | awk '{{print $1,$3}}' >> {output.tax_id}; done || true
         """
 
 rule join_blst_tax:
     input:
-        tax_ids = rules.extract_tax_ids.output.tax_id,
+        tax_ids = rules.extract_tax_ids.output.tax_id, 
         blst = rules.Blast_contigs_on_nt.output.blast,
         blst_ids = rules.extract_seq_acc.output.temp
     output:
