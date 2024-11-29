@@ -51,6 +51,8 @@ contig_length.columns.values[0] = "qseqid"
 
 n=0
 for files_name in list_files :
+	if files_name not in df.index:
+		continue
 	with open(f"{output_directory}/logs/01_read_processing/01_cutadapt/01_remove_sequencing_adapters/{files_name}{ext1}_Remove_sequencing_adapters.log",'r') as cut1_1:
 		for line in cut1_1:
 			if "Total reads processed" in line:
@@ -97,7 +99,7 @@ for files_name in list_files :
 				c = line.split("\t")
 				result_table.at['Avg insert_size', files_name]="%.2f" % (float(c[5]))
 	insert.close()
-	with open(f"{output_directory}/logs/01_read_processing/07_flash_merge_pair/hpen_9_flash.log",'r') as flash:
+	with open(f"{output_directory}/logs/01_read_processing/07_flash_merge_pair/{files_name}_flash.log",'r') as flash:
 		for line in flash:
 			if "Total pairs" in line:
 				c = line.replace('\n','').replace(' ','').split(":")
@@ -175,7 +177,7 @@ for files_name in list_files :
 				result_table.at['Map on bacteria', files_name]=result_table.at['UnMapped on Diptera', files_name]-result_table.at['UnMapped on bacteria', files_name]
 				result_table.at['Map on Host Genome', files_name]=result_table.at['UnMapped on bacteria', files_name]-result_table.at['UnMapped Host Genome', files_name]
 	conta.close()
-	#print(df[files_name])
+	# print(df[files_name])
 	result_table.at['Nb viral family', files_name]=df[["family", files_name]][df[files_name]> 1].family.value_counts().count()
 	result_table.at['Nb viral genus', files_name]=df[["genus", files_name]][df[files_name]> 1].genus.value_counts().count()
 	result_table.at['Nb viral species', files_name]=df[["species", files_name]][df[files_name]> 1].species.value_counts().count()
@@ -198,6 +200,7 @@ for files_name in list_files :
 	result_table.at["Nb of reads with viral hit as singleton", files_name]=count_df[~count_df[["qseqid",files_name]].qseqid.astype(str).str.startswith('k') & ~count_df[["qseqid",files_name]].qseqid.astype(str).str.startswith('C')][files_name].sum()
 	result_table.at['% viral reads', files_name]=round(result_table.loc["Reads with viral hit", files_name] *100 / (result_table.loc["Total read R1", files_name]+result_table.loc["Total read R1", files_name]),2)
 
+ranges = [1,10,100,1000,10000]
 result_table.at['Nb of contigs', 'All-sample']=int(count_df_r.shape[0])-1
 result_table.at['Min contigs length', 'All-sample']=int(stats_contigs.iloc[3])
 result_table.at['Max contigs length', 'All-sample']=int(stats_contigs.iloc[7])
