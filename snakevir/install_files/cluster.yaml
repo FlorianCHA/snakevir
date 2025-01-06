@@ -1,68 +1,70 @@
 __default__:
   job-name: "{rule}"
-  partition: agap_long
+  partition: long
   nodes: '1'
   cpus-per-task: '1'
+  mem: 10G
   output: cluster_log/{rule}_%j.out
   error: cluster_log/{rule}_%j.err
-  mem: 10G
-  account: agap
+  account: magmax
   
 Quality_trimming:
-  partition: agap_long
+  partition: long
   cpus-per-task: '4'
   
 Map_On_host:
-  partition: agap_long
+  partition: long
   cpus-per-task: '4'
   mem: 20G
   
 Map_On_bacteria:
-  partition: agap_long
+  partition: long
   cpus-per-task: '4'
   mem: 20G
  
 bwa_genome_host_mapping:
-  partition: agap_long
+  partition: long
   cpus-per-task: '4'
   mem: 20G
   
 Megahit_Assembly:
-  partition: agap_long
+  partition: long
   cpus-per-task: '8'
   mem: 40G
   
 Cap3_Assembly:
-  partition: agap_long
+  partition: long
   cpus-per-task: '10'
+  mem: 60G
   
 Map_On_Assembly:
-  partition: agap_long
+  partition: long
   cpus-per-task: '4'
   mem: 20G
   
 Blast_contigs_on_nr:
-  partition: agap_bigmem
-  cpus-per-task: '1'
-  mem: 200G
-  
+  partition: long
+  cpus-per-task: '4'
+  mem: 150G
+  account: magmax
+
 complete_taxo:
-  partition: agap_long
+  partition: long
   cpus-per-task: '4'
   
 Blast_contigs_on_nt:
-  partition: agap_long
+  partition: long
   cpus-per-task: '1'
   
 merge_depth:
-  partition: agap_long
+  partition: long
   mem: 75G
   
 range_depth:
-  partition: agap_long
+  partition: long
   mem: 40G
   
 stats_depth:
-  partition: agap_long
+  partition: long
   mem: 40G
 

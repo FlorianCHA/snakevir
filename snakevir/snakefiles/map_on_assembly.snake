@@ -40,12 +40,14 @@ rule get_insert_size_metric:
     input:
         bam = rules.Map_On_Assembly.output.raw
     output:
-        metrics = f"{output_directory}/logs/03_mapping_on_assembly/{{smp}}_insert_size_metrics_{{RUN}}.txt",
+        metrics = f"{output_directory}/logs/03_mapping_on_assembly/{{smp}}_insert_size_metrics_{{RUN}}.txt"
+    params:
         histo = f"{output_directory}/logs/03_mapping_on_assembly/{{smp}}_insert_size_histo_{{RUN}}.pdf"
     envmodules: config['module_file']
     shell:
         """
-        picard  CollectInsertSizeMetrics -M 0.0 -I {input.bam}  -O {output.metrics} -H {output.histo}
+        touch {output.metrics}
+        picard  CollectInsertSizeMetrics -M 0.0 -I {input.bam}  -O {output.metrics} -H {params.histo}
         """
 
 rule Quantify_contigs_coverage_raw:

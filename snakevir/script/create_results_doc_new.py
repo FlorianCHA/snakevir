@@ -48,9 +48,10 @@ stats_contigs=contig_length.iloc[:, 1].describe()
 
 contig_length.columns.values[0] = "qseqid"
 
-
 n=0
 for files_name in list_files :
+	if files_name not in df.columns:
+		continue
 	with open(f"{output_directory}/logs/01_read_processing/01_cutadapt/01_remove_sequencing_adapters/{files_name}{ext1}_Remove_sequencing_adapters.log",'r') as cut1_1:
 		for line in cut1_1:
 			if "Total reads processed" in line:
@@ -138,7 +139,6 @@ for files_name in list_files :
 
 
 	with open(f"{output_directory}/logs/01_read_processing/Stats_contaminent_{files_name}.txt",'r') as conta:
-		print(files_name)
 		for line in conta:
 			if "Host_pair_R1" in line:
 				c = line.replace('\n','').split(":")
@@ -175,7 +175,7 @@ for files_name in list_files :
 				result_table.at['Map on bacteria', files_name]=result_table.at['UnMapped on Diptera', files_name]-result_table.at['UnMapped on bacteria', files_name]
 				result_table.at['Map on Host Genome', files_name]=result_table.at['UnMapped on bacteria', files_name]-result_table.at['UnMapped Host Genome', files_name]
 	conta.close()
-	#print(df[files_name])
+	# print(df[files_name])
 	result_table.at['Nb viral family', files_name]=df[["family", files_name]][df[files_name]> 1].family.value_counts().count()
 	result_table.at['Nb viral genus', files_name]=df[["genus", files_name]][df[files_name]> 1].genus.value_counts().count()
 	result_table.at['Nb viral species', files_name]=df[["species", files_name]][df[files_name]> 1].species.value_counts().count()
@@ -198,6 +198,7 @@ for files_name in list_files :
 	result_table.at["Nb of reads with viral hit as singleton", files_name]=count_df[~count_df[["qseqid",files_name]].qseqid.astype(str).str.startswith('k') & ~count_df[["qseqid",files_name]].qseqid.astype(str).str.startswith('C')][files_name].sum()
 	result_table.at['% viral reads', files_name]=round(result_table.loc["Reads with viral hit", files_name] *100 / (result_table.loc["Total read R1", files_name]+result_table.loc["Total read R1", files_name]),2)
 
+ranges = [1,10,100,1000,10000]
 result_table.at['Nb of contigs', 'All-sample']=int(count_df_r.shape[0])-1
 result_table.at['Min contigs length', 'All-sample']=int(stats_contigs.iloc[3])
 result_table.at['Max contigs length', 'All-sample']=int(stats_contigs.iloc[7])
@@ -222,12 +223,12 @@ row_mean=["Avg read length R1","Avg read length R2","Avg cleaned read length R1 
 print("ok3")
 
 for row in row_sum:
-	result_table.at[row,'All-sample']=result_table.loc[row,result_table.columns != 'All-sample'].apply(int).sum(axis=0)
+	result_table.at[row,'All-sample']=result_table.loc[row,result_table.columns != 'All-sample'].fillna(0).apply(int).sum(axis=0)
 for row in row_mean:
-	result_table.at[row,'All-sample']=result_table.loc[row,result_table.columns != 'All-sample'].apply(float).mean(axis=0).round(2)
+	result_table.at[row,'All-sample']=round(result_table.loc[row,result_table.columns != 'All-sample'].apply(float).mean(axis=0),2)
 
 
-result_table.at['% viral reads',  'All-sample']=round(result_table.loc["Reads with viral hit", 'All-sample'] *100 / (result_table.loc["Total read R1", 'All-sample']+result_table.loc["Total read R1", 'All-sample']),2)
+result_table.at['% viral reads',  'All-sample']=round(result_table.loc["Reads with viral hit", 'All-sample'] *100 / (result_table.loc["Total read R1", 'All-sample']+result_table.loc["Total read R2", 'All-sample']),2)
 
 
 result_table.to_csv(out)
