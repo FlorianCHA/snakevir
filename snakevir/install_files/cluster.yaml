@@ -35,6 +35,7 @@ Megahit_Assembly:
 Cap3_Assembly:
   partition: long
   cpus-per-task: '10'
+  mem: 60G
   
 Map_On_Assembly:
   partition: long
@@ -42,10 +43,11 @@ Map_On_Assembly:
   mem: 20G
   
 Blast_contigs_on_nr:
-  partition: bigmem
-  cpus-per-task: '1'
-  mem: 200G
-  
+  partition: long
+  cpus-per-task: '4'
+  mem: 150G
+  account: magmax
+
 complete_taxo:
   partition: long
   cpus-per-task: '4'
