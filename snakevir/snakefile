@@ -87,6 +87,37 @@ include: f"snakefiles/blast_taxid.snake"
 ############################ Calculate depth for count table ####################################
 include: f"snakefiles/depth.snake"
 
+rule Retrieve_vesion_tools:
+    output:
+        temp(directory(f"{output_directory}/version_tools/"))
+    envmodules: config['module_file']
+    shell:
+        """
+        mkdir {output}
+        # Version for cutadapt
+        cutadapt --version > {output}/cutadapt.version;
+        # Version for python
+        python --version > {output}/python.version;
+        # Version for bwa
+        set +o pipefail;
+        bwa 2>&1 | grep '' > {output}/bwa.version;
+        # Version for picardtools SamToFastq
+        picard SamToFastq --version true 2>&1 | grep 'ersion' >  {output}/picard.version;
+        # Version for samtools
+        samtools 2>&1 | grep '' >  {output}/samtools.version;
+        # Version for flash
+        flash --version > {output}/flash.version;
+        # Version for megahit
+        megahit --version > {output}/megahit.version;
+        # Version for Cap3
+        cap3 2>&1 | grep '' >  {output}/cap3.version;
+        # Version for diamond
+        diamond --version > {output}/diamond.version;
+        # Version for perl
+        perl --version > {output}/perl.version;
+        # Version for blastn 
+        blastn -version > {output}/blastn.version;
+        """
 
 rule Create_logs_report:
     input:
@@ -128,17 +159,20 @@ rule Clustering_OTU:
         host_file = rules.join_host_tax.output.host_lineage,
         count_file = rules.Build_array_coverage_nr.output.by_seq,
         cov10_file = rules.results_depth.output.range_10x,
-        coverage_stat_file = rules.results_depth.output.stats_deph
+        coverage_stat_file = rules.results_depth.output.stats_deph,
+         tools_version_directory = rules.Retrieve_vesion_tools.output
     output:
         directory = directory(f"{output_directory}/06_final_data/{{RUN}}_OTU/"),
         report = f"{output_directory}/06_final_data/clustering_Report_{{RUN}}.html"
     params:
         script= f'{scriptdir}/clustering_Report.Rmd',
+        diamond_database = base_nr,
+        blast_database = base_nt,
         min_read_by_sample = 1,
         min_read_by_contig = 1,
         run_name = RUN
     envmodules: config['module_file']
     shell:
         """
-        Rscript -e 'rmarkdown::render("{params.script}", output_file="{output.report}", quiet=TRUE, params = list(output_directory = "{output.directory}", blast_file = "{input.blast_file}", taxo_file = "{input.taxo_file}", host_file = "{input.host_file}", count_file = "{input.count_file}", cov10_file = "{input.cov10_file}", coverage_stat_file = "{input.coverage_stat_file}", min_read_by_sample = {params.min_read_by_sample}, min_read_by_contig = {params.min_read_by_contig} ,run_name = "{params.run_name}"))'
+        Rscript -e 'rmarkdown::render("{params.script}", output_file="{output.report}", quiet=TRUE, params = list(output_directory = "{output.directory}", tools_version_directory = "{input.tools_version_directory}", diamond_database = "{params.diamond_database}", blast_database = "{params.blast_database}", blast_file = "{input.blast_file}", taxo_file = "{input.taxo_file}", host_file = "{input.host_file}", count_file = "{input.count_file}", cov10_file = "{input.cov10_file}", coverage_stat_file = "{input.coverage_stat_file}", min_read_by_sample = {params.min_read_by_sample}, min_read_by_contig = {params.min_read_by_contig} ,run_name = "{params.run_name}"))'
         """

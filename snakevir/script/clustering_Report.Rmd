@@ -10,6 +10,9 @@ params:
   host_file: ''
   count_file: ''
   cov10_file: ''
+  tools_version_directory: ''
+  diamond_database: ''
+  blast_database: ''
   coverage_stat_file: ''
   output_directory: ''
 
@@ -17,8 +20,7 @@ output:
   rmdformats::readthedown:
     toc_float:
       smooth_scroll: false
-    toc_depth: 3
-    code_folding: hide
+    toc_depth: 4
   html_document:
     code_folding: hide
     fig_caption: yes
@@ -28,20 +30,28 @@ output:
     toc_float:
       collapsed: false
       smooth_scroll: false
-    toc_depth: 3
+    toc_depth: 4
 
 ---
 
+
 <style>
 
+#content{max-width:1800px;}
+li{max-width:800px;}
 p {
   text-align: justify;
+  max-width:800px;
 }
 h2 {
     border-bottom: 2px solid;
 }
 h3 {
-    border-bottom: 1px solid;
+    text-decoration: underline;;
+}
+.main-container {
+  max-width: 90% !important;
+  margin: auto;
 }
 </style>
 
@@ -54,76 +64,13 @@ knitr::opts_chunk$set(
   fig.height = 8, 
   fig.align = "center", 
   size = "tiny", 
-  echo = TRUE, eval=TRUE, 
+  echo = FALSE, eval=TRUE, 
   warning = FALSE, message = FALSE, 
   results = TRUE, comment = "")
 ```
 
-# Clustering Script by Antoni
-
-First step, we need blast Blast_5_hit_HN00175802_add_vir.tsv, for this we use a bash script which use viral_contigs_ids_HN00175802.txt and viral_contigs_ids_HN00175802.txt. Then in the new file we add the columns name not_vir.
-
-```{r input file, echo=TRUE}
-#Abundace clust 
-abundance.clust <- 0.1 # Seuil de 90 %
-# Min Reads by Sample 
-min.reads.sample <- as.integer(params$min_read_by_sample)
-# Min Reads by  otu 
-min.reads.otu <- as.integer(params$min_read_by_contig)
-# Filter on cov10x
-filter.cov <- FALSE
-#Project name forinput and output file
-project.name <- params$run_name
-#Blast file
-blast.file <- params$blast_file
-#Virus Taxonomy table
-taxo.file <- params$taxo_file
-#Hosts Taxonomy table
-host.file <- params$host_file
-#Count table
-count.file <- params$count_file
-#Coverage range where cover is lower than 10X (sum of cover of all samples)
-cov10x.file <- params$cov10_file
-#Coverage min/max/mean/med for each  contigs sequences on all samples
-coversage.stat.file <- params$coverage_stat_file
-
-```
-
-
-| Variable Name        | Seuil                      |
-|----------------------|----------------------------|
-| Clustering abundance | ```r abundance.clust```    |
-| Min reads by Sample  | ```r min.reads.sample```   |
-| Min reads by OTU     | ```r min.reads.otu```      |
-
-## Script 
-
-### Output
-
-
-```{r output file, echo=TRUE}
-# Create OTU directory 
-dicrectory.output <- params$output_directory
-if (!dir.exists(dicrectory.output)){ dir.create(dicrectory.output)}
-# Retrieve date of Rmarckdown generation
-date.run <- format(Sys.time(), "%d_%m_%y")
-# Blast file
-output_blast <- paste(dicrectory.output,'/stats_by_qseqid_',project.name,'_',date.run,'.csv', sep = "", collapse = NULL)
-# Taxo file
-output_taxo <- paste(dicrectory.output,'/taxo_',project.name,'_',date.run,'.csv', sep = "", collapse = NULL)
-# Average OTU blast stat
-output_otu_stat <- paste(dicrectory.output,'/otu_stat_',project.name,'_',date.run,'.csv', sep = "", collapse = NULL)
-# Count table 
-output_count <- paste(dicrectory.output,'/count_table_',project.name,'_',date.run,'.csv', sep = "", collapse = NULL)
-# Stat by qseqid
-output_stat_qseqid <-paste(dicrectory.output,'/stats_by_qseqid_10.csv', sep = "", collapse = NULL)
-#Big merge table
-final_table <- paste(dicrectory.output,'Final_',project.name,'_',date.run,'.csv', sep = "", collapse = NULL)
-```
-
-### Function
-
-```{r Function, echo=TRUE}
+## Parameters for clustering
+```{r Package}
 options(repos = "https://pbil.univ-lyon1.fr/CRAN/")
 # Load Library
 if(!require("dplyr"))
@@ -168,7 +115,172 @@ library(tidyr)
 library(ggplot2)
 library(igraph)
 library('reticulate', warn.conflict = FALSE, quietly = TRUE)
+```
 
+```{r input file}
+#Abundace clust 
+abundance.clust <- 0.1 # Seuil de 90 %
+# Min Reads by Sample 
+min.reads.sample <- as.integer(params$min_read_by_sample)
+# Min Reads by  otu 
+min.reads.otu <- as.integer(params$min_read_by_contig)
+# Filter on cov10x
+filter.cov <- FALSE
+#Project name forinput and output file
+project.name <- params$run_name
+#Blast file
+blast.file <- params$blast_file
+#Virus Taxonomy table
+taxo.file <- params$taxo_file
+#Hosts Taxonomy table
+host.file <- params$host_file
+#Count table
+count.file <- params$count_file
+#Coverage range where cover is lower than 10X (sum of cover of all samples)
+cov10x.file <- params$cov10_file
+#Coverage min/max/mean/med for each  contigs sequences on all samples
+coversage.stat.file <- params$coverage_stat_file
+#Tools version directry
+tools_version_directory <- params$tools_version_directory
+# Database path for date creation
+diamond_database <- params$diamond_database
+blast_database <- params$blast_database
+```
+
+### Filters parameters
+
+| Filter Name        | Seuil                      |
+|----------------------|----------------------------|
+| Clustering abundance | ```r abundance.clust```    |
+| Min reads by Sample  | ```r min.reads.sample```   |
+| Min reads by OTU     | ```r min.reads.otu```      |
+
+### Input parameters
+
+| File Name            | Path                      |
+|----------------------|----------------------------|
+| Blast                | ```r basename(blast.file)```         |
+| Virus Taxonomy       | ```r basename(taxo.file) ```         |
+| Hosts Taxonomy       | ```r basename(host.file)```          |
+| Count table          | ```r basename(count.file)```          |
+| Coverage             | ```r basename(coversage.stat.file)``` |
+| 10X Coverage         | ```r basename(cov10x.file)```          |
+
+
+### Output parameters
+
+
+```{r output file}
+# Create OTU directory 
+dicrectory.output <- params$output_directory
+if (!dir.exists(dicrectory.output)){ dir.create(dicrectory.output)}
+# Retrieve date of Rmarckdown generation
+date.run <- format(Sys.time(), "%d_%m_%y")
+# Blast file
+output_blast <- paste(dicrectory.output,'/stats_by_qseqid_',project.name,'_',date.run,'.csv', sep = "", collapse = NULL)
+# Taxo file
+output_taxo <- paste(dicrectory.output,'/taxo_',project.name,'_',date.run,'.csv', sep = "", collapse = NULL)
+# Average OTU blast stat
+output_otu_stat <- paste(dicrectory.output,'/otu_stat_',project.name,'_',date.run,'.csv', sep = "", collapse = NULL)
+# Count table 
+output_count <- paste(dicrectory.output,'/count_table_',project.name,'_',date.run,'.csv', sep = "", collapse = NULL)
+# Stat by qseqid
+output_stat_qseqid <-paste(dicrectory.output,'/stats_by_qseqid_10.csv', sep = "", collapse = NULL)
+#Big merge table
+final_table <- paste(dicrectory.output,'Final_',project.name,'_',date.run,'.csv', sep = "", collapse = NULL)
+```
+
+
+
+| File Name            | Path                      |
+|----------------------|----------------------------|
+| Blast                | ```r basename(output_blast)```         |
+| Virus Taxonomy       | ```r basename(output_taxo) ```         |
+| OTU blast            | ```r basename(output_otu_stat)```          |
+| Count table          | ```r basename(output_count)```          |
+| Stat by contig       | ```r basename(output_stat_qseqid)``` |
+| Final output         | ```r basename(final_table)```          |
+
+## Snakevir information
+
+### Tool's Version
+```{r Tools version}
+# bwa version
+bwa.file <- paste(tools_version_directory,'/bwa.version',sep = "",collapse = NULL)
+bwa.data <- read.csv(bwa.file)
+bwa_version = strsplit(bwa.data$Program..bwa..alignment.via.Burrows.Wheeler.transformation.[1],split=' ')[[1]][2]
+# Megahit version
+Megahit.file <- paste(tools_version_directory,'/megahit.version',sep = "",collapse = NULL)
+Megahit.data <- read.csv(Megahit.file,header=FALSE)
+Megahit.version <- strsplit(Megahit.data$V1[1],split=' ')[[1]][2]
+# Cap3 version
+cap3.file <- paste(tools_version_directory,'/cap3.version',sep = "",collapse = NULL)
+cap3.data <- read.csv(cap3.file,header=FALSE)
+cap3.version <- strsplit(cap3.data$V1[1],split='Size')[[1]][1]
+# samtools version
+samtools.file <- paste(tools_version_directory,'/samtools.version',sep = "",collapse = NULL)
+samtools.data <- read.csv(samtools.file,header=FALSE)
+samtools.version <- strsplit(samtools.data$V1[2],split=' ')[[1]][2]
+# picard version
+picard.file <- paste(tools_version_directory,'/picard.version',sep = "",collapse = NULL)
+picard.data <- read.csv(picard.file,header=FALSE)
+picard.version <- strsplit(picard.data$V1[1],split=':')[[1]][2]
+# diamond version
+diamond.file <- paste(tools_version_directory,'/diamond.version',sep = "",collapse = NULL)
+diamond.data <- read.csv(diamond.file,header=FALSE)
+diamond.version <- strsplit(diamond.data$V1[1],split=' ')[[1]][3]
+# flash version
+flash.file <- paste(tools_version_directory,'/flash.version',sep = "",collapse = NULL)
+flash.data <- read.csv(flash.file,header=FALSE)
+flash.version <- strsplit(flash.data$V1[1],split='v')[[1]][2]
+# cutadapt version
+cutadapt.file <- paste(tools_version_directory,'/cutadapt.version',sep = "",collapse = NULL)
+cutadapt.data <- read.csv(cutadapt.file,header=FALSE)
+cutadapt.version <- cutadapt.data$V1[1]
+# python version
+python.file <- paste(tools_version_directory,'/python.version',sep = "",collapse = NULL)
+python.data <- read.csv(python.file,header=FALSE)
+python.version <- strsplit(python.data$V1[1],split=' ')[[1]][2]
+# perl version
+perl.file <- paste(tools_version_directory,'/perl.version',sep = "",collapse = NULL)
+perl.data <- read.csv(perl.file,header=FALSE)
+perl.version <- str_replace(strsplit(perl.data$V3[1],split=' ')[[1]][4],'v','')
+```
+
+| Tools                | Version                    |
+|----------------------|----------------------------|
+| bwa                  | ```r bwa_version```        |
+| megahit              | ```r Megahit.version ```   |
+| cap3                 | ```r cap3.version```       |
+| samtools             | ```r samtools.version```   |
+| picard               | ```r picard.version ```    |
+| diamond              | ```r diamond.version ```   |
+| flash                | ```r flash.version ```     |
+| cutadapt             | ```r cutadapt.version ```  |
+| python               | ```r python.version ```    |
+| perl                 | ```r perl.version ```      |
+
+### Database's Date
+
+```{r Database version}
+# diamond nr database data
+list_path_split <- unlist(strsplit(diamond_database, "/"))
+basename_diamond <- list_path_split[length(list_path_split)]
+diamond_database <- str_sub(diamond_database, end=-(nchar(basename_diamond)+2))
+diamond_data <- file.info(diamond_database)$ctime
+# blast nt database data
+basename_blast <- unlist(strsplit(blast_database, "/"))[length( unlist(strsplit(blast_database, "/")))]
+blast_database <- str_sub(blast_database, end=-(nchar(basename_blast)+2))
+blast_data = file.info(blast_database)$ctime
+
+```
+
+| Database              | Path                       | Download Date             |
+|-----------------------|----------------------------|---------------------------|
+| Diamond NR            | ```r diamond_database ```  | ```r blast_data ```       |
+| Blast NT              | ```r blast_database ```    | ```r blast_data ```       |
+
+```{r Function}
 # Function
 fblastscore <- function(blast_table, range_pid="22-0.2", range_bitscore="0.8") {
   max_pid_contig<-blast_table %>% group_by(qseqid)  %>% dplyr::summarise(max_pid_contig = max(pident))
@@ -409,9 +521,16 @@ fctrl <- function(count_table ,control_table ) {
 }
 ```
 
-### Parse input file
+### Reads information by Step
 
-```{r open file, echo=TRUE}
+```{r stat run}
+library('DT')
+path.stat <- '/shared/home/fcharriat/mosquitometavir/Florian/BK_benchmark/02_mapping/result_mapping/06_final_data/stats_run_BK_mapping.csv'
+data = read.csv(path.stat,row.names=1)
+datatable(data, caption =" Table n°1: Run Information",extensions = 'Buttons', options = list(dom = 'Blfrtip',pageLength= 100,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'))) 
+```
+
+```{r open file}
 #Blast table
 stats_by_qseqid=read.csv(blast.file, header = TRUE, check.names = FALSE)
 stats_by_qseqid <- stats_by_qseqid %>%  group_by(qseqid) %>%  dplyr::mutate(pos_in_grp = 1:n())
@@ -447,9 +566,8 @@ rownames(count_contigs) <- count_contigs[,1]
 count_contigs <- count_contigs[,-1]
 ```
 
-### Remove control form count table
 
-```{r control search, echo=TRUE}
+```{r control search}
 #Create a df with only the control count values
 # here change code with control identification !
 # control<-count_contigs[ , grepl("141" , names( count_contigs ) ) | grepl( "142" , names( count_contigs ) ) 
@@ -478,9 +596,7 @@ num_tax_id<- length(unique(stats_by_qseqid$tax_id))
 num_read<-rowSums(count_contigs[,2:ncol(count_contigs)]%>%  summarize_if(is.numeric, sum, na.rm=TRUE))
 ```
 
-### Step 1 : Blast filter
-
-```{r Step.1 filter blast, echo=TRUE}
+```{r Step.1 filter blast}
 # Filter hits from the blast table based on pid and bitscore
 stats_by_qseqid_1<- fblastscore(stats_by_qseqid, range_pid="22-0.2", range_bitscore="0.8")
 taxo_1<-subset(taxo, tax_id %in% stats_by_qseqid_1$tax_id)
@@ -493,10 +609,7 @@ num_tax_id_1<- length(unique(stats_by_qseqid_1$tax_id))
 num_read_1<-rowSums(count_contigs[,2:ncol(count_contigs)]%>%  summarize_if(is.numeric, sum, na.rm=TRUE))
 ```
 
-### Step.2 Remove duplicates
-
-```{r Step.2 Remove duplicates, echo=TRUE}
-
+```{r Step.2 Remove duplicates}
 #Remove duplicated species with multiple tax_id
 dedu<-dedupl(taxo_1,stats_by_qseqid_1)
 stats_by_qseqid_2<-dedu$blst_tbl_dedup
@@ -510,9 +623,7 @@ num_tax_id_2<- length(unique(stats_by_qseqid_2$tax_id))
 num_read_2<-rowSums(count_contigs[,2:ncol(count_contigs)]%>%  summarize_if(is.numeric, sum, na.rm=TRUE))
 ```
 
-### Step.3 Controls Filter
-
-```{r Step.3 Controls Filter, echo=TRUE}
+```{r Step.3 Controls Filter}
 #Filter controls
 count_contigs_3 <- count_contigs
 #count_contigs_3<-fctrl(count_contigs, control)
@@ -527,9 +638,8 @@ num_tax_id_3<- length(unique(stats_by_qseqid_3$tax_id))
 num_read_3<-rowSums(count_contigs_3[,2:ncol(count_contigs_3)-1]%>%  summarize_if(is.numeric, sum, na.rm=TRUE))
 ```
 
-### Step.4 Coverage Filter
 
-```{r Step.4 Coverage Filter, echo=TRUE}
+```{r Step.4 Coverage Filter}
 #FIlter contigs on coverage
 filter.cov <- FALSE
 stats_by_qseqid_4<-fcover(stats_by_qseqid_3 ,cov_10x,filter=filter.cov)
@@ -548,9 +658,8 @@ num_read_4<-rowSums(count_contigs_4[,2:ncol(count_contigs_4)-1]%>%  summarize_if
 
 ```
 
-### Step.5 Unwanted Species Filter
 
-```{r Step.5 Unwanted Species Filter, echo=TRUE}
+```{r Step.5 Unwanted Species Filter}
 #Remove unwanted species
 taxo_to_fil<-taxo_4[grepl("sp\\." ,taxo_4$species) | grepl("^uncultured " ,taxo_4$species),]       
 taxo_5<-anti_join(taxo_4, taxo_to_fil)
@@ -566,9 +675,8 @@ num_tax_id_5<- length(unique(stats_by_qseqid_5$tax_id))
 num_read_5<-rowSums(count_contigs_3[,2:ncol(count_contigs_5)-1]%>%  summarize_if(is.numeric, sum, na.rm=TRUE))
 ```
 
-### Step.6 Blast Clustering
 
-```{r Step.6 Blast Clustering, echo=TRUE}
+```{r Step.6 Blast Clustering}
 #Clustering based on blast output
 stats_by_qseqid_6<-clustma(stats_by_qseqid_5)
 
@@ -581,9 +689,8 @@ num_tax_id_6<- length(unique(stats_by_qseqid_6$tax_id))
 num_read_6<-rowSums(count_contigs_3[,2:ncol(count_contigs_5)]%>%  summarize_if(is.numeric, sum, na.rm=TRUE))
 ```
 
-### Step.7 Abundance Clustering
 
-```{r Step.7 Abundance Clustering, echo=TRUE}
+```{r Step.7 Abundance Clustering}
 #Clustering with abundances
 stats_by_qseqid_7<-clustcount(stats_by_qseqid_6, count_contigs_5, prev=abundance.clust)
 
@@ -596,16 +703,14 @@ num_tax_id_7<- length(unique(stats_by_qseqid_7$tax_id))
 num_read_7<-rowSums(count_contigs_3[,2:ncol(count_contigs_5)]%>%  summarize_if(is.numeric, sum, na.rm=TRUE))
 ```
 
-### Step.8 Merge Taxo
 
-```{r Step.8 Merge Taxo, echo=TRUE}
+```{r Step.8 Merge Taxo}
 #Merge multi-affiliation taxo
 taxo_8<-mergetaxo(stats_by_qseqid_7, taxo_5)
 ```
 
-### Step.9 Merge table
 
-```{r Step.9 Merge, echo=TRUE}
+```{r Step.9 Merge}
 library(plyr)
 merging<-cleaned_merge(stats_by_qseqid_7, count_contigs_5[ , names(count_contigs_5) != "sum"])
 stats_by_qseqid_9<-merging[[1]]
@@ -620,9 +725,8 @@ num_besth_9<- length(unique(stats_by_qseqid_9[!duplicated(stats_by_qseqid_9$qseq
 num_tax_id_9<- length(unique(stats_by_qseqid_9$tax_id))
 ```
 
-### Write final output
 
-```{r Step.10 Final Output, echo=TRUE}
+```{r Step.10 Final Output}
 write.csv(stats_by_qseqid_9,output_blast, row.names = FALSE)
 write.csv(taxo_8,output_taxo, row.names = FALSE)
 write.csv(otu_stat,output_otu_stat, row.names = FALSE)
@@ -631,7 +735,6 @@ stats_by_qseqid_10<-stats_by_qseqid_9 %>% left_join(taxo_5, by = "tax_id")
 write.csv(stats_by_qseqid_10,output_stat_qseqid , row.names = FALSE)
 ```
 
-## Merge table
 
 ```{python, echo=FALSE, message = FALSE, warning = TRUE}
 # For remove python warning in report
@@ -668,23 +771,28 @@ blast_mean = blast_mean.drop_duplicates(subset=['MA_grp'], keep='first')
 blast_mean.to_csv(r.final_table,sep='\t', index=False)
 ```
 
-```{r Step.9 Table Output, echo=TRUE}
-library('DT')
+
+## Result
+
+### Table
+```{r Step.9 Table Output}
 data <- py$blast_mean
 data <- data[1:ncol(data)]
 data = data[,!(names(data) %in% c("species_grp"))]
-datatable(data, caption =" Table n°1: Count Table",extensions = 'Buttons', options = list(dom = 'Blfrtip',buttons = c('copy', 'csv', 'excel', 'pdf', 'print'))) 
+datatable(data, caption =" Table n°2: Count Table",extensions = 'Buttons', options = list(dom = 'Blfrtip',buttons = c('copy', 'csv', 'excel', 'pdf', 'print'))) 
 ```
 
-## Figure Result
 
-```{r Legend Fig, echo=TRUE}
+
+```{r Legend Fig}
 Legend <- c('Filter_bitscore','Duplicated_taxid','Filter_control', 'Coverage 10x', 'unwanted_species','Blast_clustering','Abundance clustering','Filter low count reads')
 ```
 
-### Contigs Result
+### Figure
 
-```{r Fig.1 Contig, echo=TRUE}
+#### Contigs
+
+```{r Fig.1 Contig}
 # Number contigs 
 contigs <- c(num_contigs_1, num_contigs_2, num_contigs_3, num_contigs_4, num_contigs_5, num_contigs_6, num_contigs_7, num_contigs_9)
 data_contigs <- data.frame(Legend,contigs)
@@ -697,9 +805,9 @@ plot.contigs
 
 -----
 
-### OTU Result
+#### OTU
 
-```{r Fig.2 OTU, echo=TRUE}
+```{r Fig.2 OTU}
 # Number OTU 
 OTU <- c(num_contigs_1, num_contigs_2, num_contigs_3, num_contigs_4, num_contigs_5, num_OTU_6, num_OTU_7, num_OTU_9)
 data_OTU <- data.frame(Legend,OTU)
@@ -712,9 +820,9 @@ plot.OTU
 
 -----
 
-### Output Result
+#### Output
 
-```{r Fig.3 Output, echo=TRUE}
+```{r Fig.3 Output}
 # Number output
 output <- c(num_output_1, num_output_2, num_output_3, num_output_4, num_output_5, num_output_6, num_output_7, num_output_9)
 data_output <- data.frame(Legend,output)
@@ -727,9 +835,9 @@ plot.output
 
 -----
 
-### Reads Result
+#### Reads
 
-```{r Fig.4 Reads, echo=TRUE}
+```{r Fig.4 Reads}
 # Number reads
 num_read_9 <- num_read_7
 reads <- c(num_read_1, num_read_2, num_read_3, num_read_4, num_read_5, num_read_6, num_read_7, num_read_9)
@@ -743,9 +851,9 @@ plot.reads
 
 -----
 
-### Best Hit Result
+#### Best Hit Result
 
-```{r Fig.5 Best Hit, echo=TRUE}
+```{r Fig.5 Best Hit}
 # Number best hit
 best.hits <- c(num_besth_1, num_besth_2, num_besth_3, num_besth_4, num_besth_5, num_besth_6, num_besth_7, num_besth_9)
 data_bh <- data.frame(Legend,best.hits)
@@ -758,9 +866,9 @@ plot.bh
 
 -----
 
-### Taxid Result
+#### Taxid Result
 
-```{r Fig.6 Taxid, echo=TRUE}
+```{r Fig.6 Taxid}
 # Number taxid
 tax.id <- c(num_tax_id_1, num_tax_id_2, num_tax_id_3, num_tax_id_4, num_tax_id_5, num_tax_id_6, num_tax_id_7, num_tax_id_9)
 data_taxid <- data.frame(Legend,tax.id)
