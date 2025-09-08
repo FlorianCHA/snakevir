@@ -187,7 +187,7 @@ output_count <- paste(dicrectory.output,'/count_table_',project.name,'_',date.ru
 # Stat by qseqid
 output_stat_qseqid <-paste(dicrectory.output,'/stats_by_qseqid_10.csv', sep = "", collapse = NULL)
 #Big merge table
-final_table <- paste(dicrectory.output,'Final_',project.name,'_',date.run,'.csv', sep = "", collapse = NULL)
+final_table <- paste(dicrectory.output,'/Final_',project.name,'_',date.run,'.csv', sep = "", collapse = NULL)
 ```
 
 
@@ -267,17 +267,17 @@ perl.version <- str_replace(strsplit(perl.data$V3[1],split=' ')[[1]][4],'v','')
 list_path_split <- unlist(strsplit(diamond_database, "/"))
 basename_diamond <- list_path_split[length(list_path_split)]
 diamond_database <- str_sub(diamond_database, end=-(nchar(basename_diamond)+2))
-diamond_data <- file.info(diamond_database)$ctime
+diamond_data <- file.info(diamond_database)$mtime
 # blast nt database data
 basename_blast <- unlist(strsplit(blast_database, "/"))[length( unlist(strsplit(blast_database, "/")))]
 blast_database <- str_sub(blast_database, end=-(nchar(basename_blast)+2))
-blast_data = file.info(blast_database)$ctime
+blast_data = file.info(blast_database)$mtime
 
 ```
 
 | Database              | Path                       | Download Date             |
 |-----------------------|----------------------------|---------------------------|
-| Diamond NR            | ```r diamond_database ```  | ```r blast_data ```       |
+| Diamond NR            | ```r diamond_database ```  | ```r diamond_data ```       |
 | Blast NT              | ```r blast_database ```    | ```r blast_data ```       |
 
 ```{r Function}
