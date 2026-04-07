@@ -118,7 +118,8 @@ library('reticulate', warn.conflict = FALSE, quietly = TRUE)
 ```
 
 ```{r input file}
-#Abundace clust 
+#Abundace clust correlation
+correlation.clustering <- FALSE
 abundance.clust <- 0.1 # Seuil de 90 %
 # Min Reads by Sample 
 min.reads.sample <- as.integer(params$min_read_by_sample)
@@ -145,13 +146,17 @@ tools_version_directory <- params$tools_version_directory
 # Database path for date creation
 diamond_database <- params$diamond_database
 blast_database <- params$blast_database
+
+# Path to stat mapping
+path.stat <- paste(dirname(params$output_directory),"/stats_run_", project.name, '.csv', sep='')
 ```
 
 ### Filters parameters
 
 | Filter Name        | Seuil                      |
 |----------------------|----------------------------|
-| Clustering abundance | ```r abundance.clust```    |
+| Correlation clustering  | ```r correlation.clustering```    |
+| Abundance for Clustering  | ```r abundance.clust```    |
 | Min reads by Sample  | ```r min.reads.sample```   |
 | Min reads by OTU     | ```r min.reads.otu```      |
 
@@ -525,7 +530,6 @@ fctrl <- function(count_table ,control_table ) {
 
 ```{r stat run}
 library('DT')
-path.stat <- '/shared/home/fcharriat/mosquitometavir/Florian/BK_benchmark/02_mapping/result_mapping/06_final_data/stats_run_BK_mapping.csv'
 data = read.csv(path.stat,row.names=1)
 datatable(data, caption =" Table n°1: Run Information",extensions = 'Buttons', options = list(dom = 'Blfrtip',pageLength= 100,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'))) 
 ```
@@ -693,7 +697,10 @@ num_read_6<-rowSums(count_contigs_3[,2:ncol(count_contigs_5)]%>%  summarize_if(i
 ```{r Step.7 Abundance Clustering}
 #Clustering with abundances
 stats_by_qseqid_7<-clustcount(stats_by_qseqid_6, count_contigs_5, prev=abundance.clust)
-
+if (correlation.clustering ==FALSE)
+{
+  stats_by_qseqid_7$MA_grp <- stats_by_qseqid_7$grp
+}
 #Calculate stat 
 num_contigs_7<- length(unique(stats_by_qseqid_7$qseqid))
 num_OTU_7 <- length(unique(stats_by_qseqid_7$MA_grp))
