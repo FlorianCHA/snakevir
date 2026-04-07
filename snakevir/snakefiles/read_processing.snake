@@ -52,7 +52,7 @@ rule Repair_Pairs:
     envmodules: config['module_file']
     shell:
         """
-        python2 {params} {input.R1} {input.R2} {output.R1} {output.R2} {output.WI} 2> {log}
+        python {params} {input.R1} {input.R2} {output.R1} {output.R2} {output.WI} 2> {log}
         """
 
  # Host-homologous sequence cleaning by mapping (bwa) on ribosomal sequences.
@@ -109,9 +109,9 @@ rule Extract_Unmapped_host_Reads:
     envmodules: config['module_file']
     shell:
         """
-        if [ -s {input.sam_pairs} ]
+	if [ -s {input.sam_pairs} ]
         then
-            picard SamToFastq VALIDATION_STRINGENCY=SILENT I={input.sam_pairs} F={output.pairs_R1} F2={output.pairs_R2}
+            picard -Xmx15G SamToFastq VALIDATION_STRINGENCY=SILENT I={input.sam_pairs} F={output.pairs_R1} F2={output.pairs_R2}
         else
             echo "{input.sam_pairs} or {input.sam_WI} is empty."
             touch {output.pairs_R1}
@@ -119,7 +119,7 @@ rule Extract_Unmapped_host_Reads:
         fi
         if [ -s {input.sam_WI} ]
         then
-            picard SamToFastq VALIDATION_STRINGENCY=SILENT I={input.sam_WI} F={output.WI}
+            picard -Xmx15G SamToFastq VALIDATION_STRINGENCY=SILENT I={input.sam_WI} F={output.WI}
         else
             echo "{input.sam_WI} is empty."
             touch {output.WI}
@@ -183,7 +183,7 @@ rule Extract_Unmapped_bact_Reads:
         """
         if [ -s {input.sam_pairs} ]
         then
-            picard  SamToFastq VALIDATION_STRINGENCY=SILENT I={input.sam_pairs} F={output.pairs_R1} F2={output.pairs_R2}
+            picard -Xmx15G SamToFastq VALIDATION_STRINGENCY=SILENT I={input.sam_pairs} F={output.pairs_R1} F2={output.pairs_R2}
         else
             echo "{input.sam_pairs} is empty."
             touch {output.pairs_R1}
@@ -191,7 +191,7 @@ rule Extract_Unmapped_bact_Reads:
         fi
         if [ -s {input.sam_WI} ]
         then
-            picard SamToFastq  VALIDATION_STRINGENCY=SILENT I={input.sam_WI} F={output.WI}
+            picard -Xmx15G SamToFastq  VALIDATION_STRINGENCY=SILENT I={input.sam_WI} F={output.WI}
         else
             echo "{input.sam_WI} is empty."
             touch {output.WI}
@@ -217,9 +217,9 @@ rule bwa_genome_host_mapping:
     input:
         reference_genome = config["host_genome"],
         reference_genome_index = rules.bwa_index.output.index,
-        R1 = rules.Extract_Unmapped_bact_Reads.output.pairs_R1,
-        R2 = rules.Extract_Unmapped_bact_Reads.output.pairs_R2,
-        WI = rules.Extract_Unmapped_bact_Reads.output.WI
+        R1 = ancient(rules.Extract_Unmapped_bact_Reads.output.pairs_R1),
+        R2 = ancient(rules.Extract_Unmapped_bact_Reads.output.pairs_R2),
+        WI = ancient(rules.Extract_Unmapped_bact_Reads.output.WI)
     output:
         mapped_sam = temp(f"{output_directory}/01_read_processing/06_filtered_fastq_host_genome_mapping/filtered_bacteria_{{smp}}.sam"),
         WI_sam = temp(f"{output_directory}/01_read_processing/06_filtered_fastq_host_genome_mapping/filtered_bacteria_{{smp}}widows.sam")
