@@ -16,7 +16,7 @@ dependencies:
   - r-ggplot2
   - r-plotly
   - r-dplyr=1.0.10
-  - r::r-data.DT
+  - r-DT
   - conda-forge::r-reticulate==1.22
   - bioawk=1.0
   - biopython=1.78

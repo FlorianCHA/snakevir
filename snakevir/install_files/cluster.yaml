@@ -7,11 +7,15 @@ __default__:
   output: cluster_log/{rule}_%j.out
   error: cluster_log/{rule}_%j.err
   account: magmax
-  
+
 Quality_trimming:
   partition: long
   cpus-per-task: '4'
   
+Repair_Pairs:
+  partition: long
+  mem: 20G
+
 Map_On_host:
   partition: long
   cpus-per-task: '4'
@@ -21,21 +25,36 @@ Map_On_bacteria:
   partition: long
   cpus-per-task: '4'
   mem: 20G
- 
+
+Extract_Unmapped_host_Reads:
+  partition: long
+  cpus-per-task: '1'
+  mem: 20G
+
+Extract_Unmapped_bact_Reads:
+ partition: long
+ cpus-per-task: '1'
+ mem: 20G
+
 bwa_genome_host_mapping:
   partition: long
   cpus-per-task: '4'
   mem: 20G
-  
+
+Merge_Pairs_With_Flash:
+  partition: long
+  cpus-per-task: 2
+  mem: 20G
+
 Megahit_Assembly:
   partition: long
   cpus-per-task: '8'
-  mem: 40G
+  mem: 100G
   
 Cap3_Assembly:
   partition: long
-  cpus-per-task: '10'
-  mem: 60G
+  cpus-per-task: '1'
+  mem: 100G
   
 Map_On_Assembly:
   partition: long
@@ -44,9 +63,8 @@ Map_On_Assembly:
   
 Blast_contigs_on_nr:
   partition: long
-  cpus-per-task: '4'
-  mem: 150G
-  account: magmax
+  cpus-per-task: '16'
+  mem: 100G
 
 complete_taxo:
   partition: long
@@ -54,7 +72,8 @@ complete_taxo:
   
 Blast_contigs_on_nt:
   partition: long
-  cpus-per-task: '1'
+  cpus-per-task: '16'
+  mem: 50G
   
 merge_depth:
   partition: long
