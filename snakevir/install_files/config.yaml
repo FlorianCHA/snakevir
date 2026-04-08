@@ -20,8 +20,8 @@ threads_Map_On_host: 4
 threads_Map_On_bacteria: 4
 threads_Megahit_Assembly: 8
 threads_Map_On_Assembly: 4
-threads_Blast_contigs_on_nr: 1
-threads_Blast_contigs_on_nt: 4
+threads_Blast_contigs_on_nr: 16
+threads_Blast_contigs_on_nt: 16
 
 # Sequence of sequencing adapters
 A3: "CAGCGGACGCCTATGTGATG"
