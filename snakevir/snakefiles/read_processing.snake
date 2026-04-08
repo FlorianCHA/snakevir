@@ -38,13 +38,16 @@ rule Quality_trimming:
 rule Repair_Pairs:
     input:
         R1 = f"{output_directory}/01_read_processing/01_cutadapt/02_triming/{{smp}}{ext_R1}.clean.fastq",
-        R2 = f"{output_directory}/01_read_processing/01_cutadapt/02_triming/{{smp}}{ext_R2}.clean.fastq"
+        R2 = f"{output_directory}/01_read_processing/01_cutadapt/02_triming/{{smp}}{ext_R2}.clean.fastq",
     output:
+        R1= f"{output_directory}/01_read_processing/01_cutadapt/03_repair_pairs/{{smp}}{ext_R1}.clean.fastq_pairs_R1.fastq.gz",
+        R2=f"{output_directory}/01_read_processing/01_cutadapt/03_repair_pairs/{{smp}}{ext_R2}.clean.fastq_pairs_R2.fastq.gz",
+        WI=f"{output_directory}/01_read_processing/01_cutadapt/03_repair_pairs/{{smp}}{ext_R1}.clean.fastq_singles.fastq.gz"
+    params:
+        f'{scriptdir}fastqCombinePairedEnd.py',
         R1= f"{output_directory}/01_read_processing/01_cutadapt/03_repair_pairs/{{smp}}{ext_R1}.clean.fastq_pairs_R1.fastq",
         R2=f"{output_directory}/01_read_processing/01_cutadapt/03_repair_pairs/{{smp}}{ext_R2}.clean.fastq_pairs_R2.fastq",
         WI=f"{output_directory}/01_read_processing/01_cutadapt/03_repair_pairs/{{smp}}{ext_R1}.clean.fastq_singles.fastq"
-    params:
-        f'{scriptdir}fastqCombinePairedEnd.py'
     log:
         f"{output_directory}/logs/01_read_processing/01_cutadapt/03_repair_pairs/{{smp}}_repair.log"
     benchmark:
@@ -53,6 +56,7 @@ rule Repair_Pairs:
     shell:
         """
         python {params} {input.R1} {input.R2} {output.R1} {output.R2} {output.WI} 2> {log}
+        gzip -f {params.R1} {params.R2} {params.WI}
         """
 
  # Host-homologous sequence cleaning by mapping (bwa) on ribosomal sequences.
@@ -173,6 +177,10 @@ rule Extract_Unmapped_bact_Reads:
         sam_pairs = rules.Map_On_bacteria.output.sam_pairs,
         sam_WI =  rules.Map_On_bacteria.output.sam_WI
     output:
+        pairs_R1 = f"{output_directory}/01_read_processing/05_filtered_fastq_bacteria_mapping/filtered_bacteria_{{smp}}_R1.fastq.gz",
+        pairs_R2 = f"{output_directory}/01_read_processing/05_filtered_fastq_bacteria_mapping/filtered_bacteria_{{smp}}_R2.fastq.gz",
+        WI =  f"{output_directory}/01_read_processing/05_filtered_fastq_bacteria_mapping/filtered_bacteria_{{smp}}_widows.fastq.gz"
+    params:
         pairs_R1 = f"{output_directory}/01_read_processing/05_filtered_fastq_bacteria_mapping/filtered_bacteria_{{smp}}_R1.fastq",
         pairs_R2 = f"{output_directory}/01_read_processing/05_filtered_fastq_bacteria_mapping/filtered_bacteria_{{smp}}_R2.fastq",
         WI =  f"{output_directory}/01_read_processing/05_filtered_fastq_bacteria_mapping/filtered_bacteria_{{smp}}_widows.fastq"
@@ -196,6 +204,7 @@ rule Extract_Unmapped_bact_Reads:
             echo "{input.sam_WI} is empty."
             touch {output.WI}
         fi
+        gzip -f {params.pairs_R1} {params.pairs_R2} {params.WI}
         """
 
 rule bwa_index:
@@ -351,11 +360,14 @@ rule Merge_Pairs_With_Flash:
     params:
         directory = f"{output_directory}/01_read_processing/07_flash_merge_pair/",
         prefix = f"{{smp}}",
-        flash = scriptdir+"flash"
-    output:
+        flash = scriptdir+"flash",
         ext = f"{output_directory}/01_read_processing/07_flash_merge_pair/{{smp}}.extendedFrags.fastq",
         R1 = f"{output_directory}/01_read_processing/07_flash_merge_pair/{{smp}}.notCombined_1.fastq",
         R2 = f"{output_directory}/01_read_processing/07_flash_merge_pair/{{smp}}.notCombined_2.fastq"
+    output:
+        ext = f"{output_directory}/01_read_processing/07_flash_merge_pair/{{smp}}.extendedFrags.fastq.gz",
+        R1 = f"{output_directory}/01_read_processing/07_flash_merge_pair/{{smp}}.notCombined_1.fastq.gz",
+        R2 = f"{output_directory}/01_read_processing/07_flash_merge_pair/{{smp}}.notCombined_2.fastq.gz"
     benchmark:
         f"{output_directory}/benchmarks/{{smp}}.flash_merge.benchmark.txt"
     log:
@@ -364,6 +376,7 @@ rule Merge_Pairs_With_Flash:
     shell:
         """
         flash -M 250 {input.pairs_R1} {input.pairs_R2} -d {params.directory} -o {params.prefix} &> {log}
+        gzip -f {params.ext} {params.R1} {params.R2}
         """
 
 def input_wi(wildcards):
@@ -379,6 +392,8 @@ rule Concatenate_Widows_And_Merged:
     input:
        unpack(input_wi)
     output:
+        final = f"{output_directory}/01_read_processing/08_concat_single/{{smp}}_widows.fastq.gz"
+    params:
         final = f"{output_directory}/01_read_processing/08_concat_single/{{smp}}_widows.fastq"
     benchmark:
         f"{output_directory}/benchmarks/{{smp}}.concat_single.benchmark.txt"
@@ -386,6 +401,7 @@ rule Concatenate_Widows_And_Merged:
     shell:
         """
         cat {input.Merged} {input.WI} > {output.final}
+        gzip -f {params.final}
         """
 
 
