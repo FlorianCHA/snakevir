@@ -1,8 +1,28 @@
-rule Blast_contigs_on_nr:
+nb_split_file = 5
+CHUNKS = [f"{i:03d}" for i in range(1,N_CHUNKS+1)]
+
+
+rule split_fasta_contigs_blastnr:
     input:
         assembly = rules.Merge_Mega_cap_contigs.output.final_assembly
     output:
-        blast_raw = f"{output_directory}/04_blast_output/01_blast_nr_results/Contigs_{{RUN}}.blast_nr_results_raw.tsv"
+        expand(f"{output_directory}/02_assembly_results/split_contigs/{{RUN}}_contigs_assembly_results.part_{chunk}.fa", chunk=CHUNKS)
+    params:
+        nb_file = CHUNKS
+        output_directory = f"{output_directory}/02_assembly_results/split_contigs/"
+    envmodules: config['module_file']
+    shell:
+        """
+        mkdir -p {params.output_directory}
+        seqkit split -p {params.nb_file} -O {params.output_directory} {input.assembly}
+        """
+
+
+rule Blast_contigs_on_nr:
+    input:
+        assembly = f"{output_directory}/02_assembly_results/split_contigs/{{RUN}}_contigs_assembly_results.part_{chunk}.fa"
+    output:
+        blast_raw = temp(f"{output_directory}/04_blast_output/01_blast_nr_results/Contigs_{{RUN}}.blast_nr_results_raw_{chunk}.tsv")
     params:
         blastDBpath=base_nr,
         basetaxoDBpath=base_taxo
@@ -13,9 +33,19 @@ rule Blast_contigs_on_nr:
         diamond blastx -b 10.0 -c 1 -p {threads}  -d {params.blastDBpath} --more-sensitive --query {input.assembly} --max-hsps 1 --max-target-seqs 5 --taxonmap {params.basetaxoDBpath} -f 6 qseqid sseqid qlen slen length qstart qend sstart send qcovhsp pident evalue bitscore staxids --out {output.blast_raw};
         """
 
+rule merge_blastnr_results:
+    input:
+        expand(f"{output_directory}/04_blast_output/01_blast_nr_results/Contigs_{{RUN}}.blast_nr_results_raw_{chunk}.tsv", chunk=CHUNKS)
+    output:
+        f"{output_directory}/04_blast_output/01_blast_nr_results/Contigs_{{RUN}}.blast_nr_results_raw.tsv"
+    shell:
+        """
+        cat {input} > {output}
+        """
+
 rule Remove_poor_qual_Blast_unmapped_on_nr_vir:
     input:
-        blast_raw = rules.Blast_contigs_on_nr.output.blast_raw
+        blast_raw = rules.merge_blastnr_results.output
     output:
         blast_tsv = f"{output_directory}/04_blast_output/01_blast_nr_results/Contigs_{{RUN}}.blast_nr_results.tsv"
     threads: 5
@@ -156,12 +186,29 @@ rule extract_viral_contigs:
         perl -ne 'if(/^>(\S+)/){{$c=$i{{$1}}}}$c?print:chomp;$i{{$_}}=1 if @ARGV' {input.viral_cont_IDS} {input.contig} > {output.viral_cont};
         """
 
+rule split_fasta_contigs_blastnt:
+    input:
+        viral_cont = ules.extract_viral_contigs.output.viral_cont
+    output:
+        expand(f"{output_directory}/02_assembly_results/split_contigs_viral/{{RUN}}_viral_contigs.part_{chunk}.fa", chunk=CHUNKS)
+    params:
+        nb_file = CHUNKS
+        output_directory = f"{output_directory}/02_assembly_results/split_contigs_viral/"
+    envmodules: config['module_file']
+    shell:
+        """
+        mkdir -p {params.output_directory}
+        seqkit split -p {params.nb_file} -O {params.output_directory} {input.assembly}
+        """
+
+
+
 rule Blast_contigs_on_nt:
     input:
         contig = rules.Merge_Mega_cap_contigs.output.final_assembly,
-        viral_cont = rules.extract_viral_contigs.output.viral_cont
+        viral_cont = f"{output_directory}/02_assembly_results/split_contigs_viral/{{RUN}}_viral_contigs.part_{chunk}.fa"
     output:
-        blast = f"{output_directory}/04_blast_output/04_blast_nt_results/Contigs_{{RUN}}.blast_nt_results.tsv"
+        blast = temp(f"{output_directory}/04_blast_output/04_blast_nt_results/Contigs_{{RUN}}.blast_nt_results_{chunck}.tsv")
     params:
         blastDBpath=base_nt
     threads: threads_Blast_contigs_on_nt
@@ -171,9 +218,19 @@ rule Blast_contigs_on_nt:
         blastn -task blastn -db {params.blastDBpath} -query {input.viral_cont} -num_threads {threads}  -evalue 0.001  -max_hsps 1 -max_target_seqs 10 -outfmt "6 qseqid sseqid qlen slen length qstart qend sstart send qcovhsp pident evalue bitscore"  -out {output.blast}
         """
 
+rule merge_blastnt_results:
+    input:
+        expand(f"{output_directory}/04_blast_output/04_blast_nt_results/Contigs_{{RUN}}.blast_nt_results_{chunck}.tsv", chunk=CHUNKS)
+    output:
+        f"{output_directory}/04_blast_output/01_blast_nr_results/Contigs_{{RUN}}.blast_nr_results_raw.tsv"
+    shell:
+        """
+        cat {input} > {output}
+        """
+
 rule extract_seq_acc:
     input:
-        blast_result = rules.Blast_contigs_on_nt.output.blast
+        blast_result = rules.merge_blastnt_results.output.blast
     output:
         temp = f"{output_directory}/04_blast_output/04_blast_nt_results/Contigs_{{RUN}}.blast_nt_results_tmp.tsv"
     envmodules: config['module_file']
@@ -198,7 +255,7 @@ rule extract_tax_ids:
 rule join_blst_tax:
     input:
         tax_ids = rules.extract_tax_ids.output.tax_id, 
-        blst = rules.Blast_contigs_on_nt.output.blast,
+        blst = rules.merge_blastnt_results.output.blast,
         blst_ids = rules.extract_seq_acc.output.temp
     output:
         blst = f"{output_directory}/04_blast_output/05_taxonomy_nt/Seq_hit_nt_{{RUN}}.csv"
