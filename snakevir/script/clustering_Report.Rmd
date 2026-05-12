@@ -15,6 +15,7 @@ params:
   blast_database: ''
   coverage_stat_file: ''
   output_directory: ''
+  logs_report: ''
 
 output:
   rmdformats::readthedown:
@@ -148,7 +149,7 @@ diamond_database <- params$diamond_database
 blast_database <- params$blast_database
 
 # Path to stat mapping
-path.stat <- paste(dirname(params$output_directory),"/stats_run_", project.name, '.csv', sep='')
+path.stat <- params$logs_report
 ```
 
 ### Filters parameters

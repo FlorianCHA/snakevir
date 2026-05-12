@@ -334,9 +334,9 @@ rule log_map_conta:
         awk '{{s++}}END{{print "Host_pair_R1 : " s/4}}' {input.host_pairs_R1} >> {output.stat_conta};
         awk '{{s++}}END{{print "Host_pairs_R2 : " s/4}}' {input.host_pairs_R2} >> {output.stat_conta};
         awk '{{s++}}END{{print "Host_pair_wi : " s/4}}' {input.host_WI} >> {output.stat_conta};
-        awk '{{s++}}END{{print "bact_pair_R1 : " s/4}}' {input.bact_pairs_R1} >> {output.stat_conta};
-        awk '{{s++}}END{{print "bact_pairs_R2 : " s/4}}' {input.bact_pairs_R2} >> {output.stat_conta};
-        awk '{{s++}}END{{print "bact_pair_wi : " s/4}}' {input.bact_WI} >> {output.stat_conta};
+        zcat {input.bact_pairs_R1} | awk '{{s++}}END{{print "bact_pair_R1 : " s/4}}' >> {output.stat_conta};
+        zcat {input.bact_pairs_R2} | awk '{{s++}}END{{print "bact_pairs_R2 : " s/4}}' >> {output.stat_conta};
+        zcat {input.bact_WI}  |awk '{{s++}}END{{print "bact_pair_wi : " s/4}}' >> {output.stat_conta};
         awk '{{s++}}END{{print "host_genome_pairs_R1 : " {params.calc}}}' {input.genome_host_R1} >> {output.stat_conta};
         awk '{{s++}}END{{print "host_genome_pairs_R2 : " {params.calc}}}' {input.genome_host_R2} >> {output.stat_conta};
         awk '{{s++}}END{{print "host_genome_pair_wi : " {params.calc}}}' {input.genome_host_WI} >> {output.stat_conta};
