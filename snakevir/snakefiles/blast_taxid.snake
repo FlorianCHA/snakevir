@@ -1,8 +1,27 @@
-rule Blast_contigs_on_nr:
+nb_split_file = 5
+CHUNKS = [f"{i:03d}" for i in range(1,nb_split_file+1)]
+
+rule split_fasta_contigs_blastnr:
     input:
         assembly = rules.Merge_Mega_cap_contigs.output.final_assembly
     output:
-        blast_raw = f"{output_directory}/04_blast_output/01_blast_nr_results/Contigs_{{RUN}}.blast_nr_results_raw.tsv"
+        expand(f"{output_directory}/02_assembly_results/split_contigs/{RUN}_contigs_assembly_results.part_{{chunk}}.fa", chunk=CHUNKS)
+    params:
+        nb_file = nb_split_file,
+        output_directory = f"{output_directory}/02_assembly_results/split_contigs/"
+    envmodules: config['module_file']
+    shell:
+        """
+        mkdir -p {params.output_directory}
+        seqkit split -p {params.nb_file} -O {params.output_directory} {input.assembly}
+        """
+
+
+rule Blast_contigs_on_nr:
+    input:
+        assembly = f"{output_directory}/02_assembly_results/split_contigs/{RUN}_contigs_assembly_results.part_{{chunk}}.fa"
+    output:
+        blast_raw = temp(f"{output_directory}/04_blast_output/01_blast_nr_results/Contigs_{RUN}.blast_nr_results_raw_{{chunk}}.tsv")
     params:
         blastDBpath=base_nr,
         basetaxoDBpath=base_taxo
@@ -13,11 +32,21 @@ rule Blast_contigs_on_nr:
         diamond blastx -b 10.0 -c 1 -p {threads}  -d {params.blastDBpath} --more-sensitive --query {input.assembly} --max-hsps 1 --max-target-seqs 5 --taxonmap {params.basetaxoDBpath} -f 6 qseqid sseqid qlen slen length qstart qend sstart send qcovhsp pident evalue bitscore staxids --out {output.blast_raw};
         """
 
+rule merge_blastnr_results:
+    input:
+        expand(f"{output_directory}/04_blast_output/01_blast_nr_results/Contigs_{RUN}.blast_nr_results_raw_{{chunk}}.tsv", chunk=CHUNKS)
+    output:
+        f"{output_directory}/04_blast_output/01_blast_nr_results/Contigs_{RUN}.blast_nr_results_raw.tsv"
+    shell:
+        """
+        cat {input} > {output}
+        """
+
 rule Remove_poor_qual_Blast_unmapped_on_nr_vir:
     input:
-        blast_raw = rules.Blast_contigs_on_nr.output.blast_raw
+        blast_raw = rules.merge_blastnr_results.output
     output:
-        blast_tsv = f"{output_directory}/04_blast_output/01_blast_nr_results/Contigs_{{RUN}}.blast_nr_results.tsv"
+        blast_tsv = f"{output_directory}/04_blast_output/01_blast_nr_results/Contigs_{RUN}.blast_nr_results.tsv"
     threads: 5
     envmodules: config['module_file']
     shell:
@@ -25,13 +54,13 @@ rule Remove_poor_qual_Blast_unmapped_on_nr_vir:
         awk '$3 >= 150 {{ print }}' {input.blast_raw} | awk '$5 >= 75 {{ print }}' > {output.blast_tsv}
         """
 
-# Flo : "Blast_nr_vir_results/Contigs_{RUN}.blast_nr_vir_results.tsv", I don't find which rules create this file.
+# Flo : "Blast_nr_vir_results/Contigs_RUN.blast_nr_vir_results.tsv", I don't find which rules create this file.
 rule log_diamond:
     input:
-        blastcontigs_nrvir = f"{output_directory}/04_blast_output/01_blast_nr_results/Contigs_{{RUN}}.blast_nr_vir_results.tsv",
+        blastcontigs_nrvir = f"{output_directory}/04_blast_output/01_blast_nr_results/Contigs_{RUN}.blast_nr_vir_results.tsv",
         blastcontigs_nr = rules.Remove_poor_qual_Blast_unmapped_on_nr_vir.output.blast_tsv
     output:
-        log=f"{output_directory}/logs/04_blast_output/01_blast_nr_results/{{smp}}_{{RUN}}_diamond.txt"
+        log=f"{output_directory}/logs/04_blast_output/01_blast_nr_results/{{smp}}_{RUN}_diamond.txt"
     envmodules: config['module_file']
     shell:
         """
@@ -43,7 +72,7 @@ rule Join_seq_acc_taxo_nr:
     input:
         contigs = rules.Remove_poor_qual_Blast_unmapped_on_nr_vir.output.blast_tsv
     output:
-        taxo = f"{output_directory}/04_blast_output/02_taxonomy/Seq_hits_info_{{RUN}}.csv"
+        taxo = f"{output_directory}/04_blast_output/02_taxonomy/Seq_hits_info_{RUN}.csv"
     envmodules: config['module_file']
     shell:
         """
@@ -55,11 +84,11 @@ rule get_nr_lineage_from_taxids:
         seq = rules.Join_seq_acc_taxo_nr.output.taxo,
         blst = rules.Remove_poor_qual_Blast_unmapped_on_nr_vir.output.blast_tsv
     output:
-        lin = f"{output_directory}/04_blast_output/02_taxonomy/lineage_{{RUN}}.csv",
-        lin5 = f"{output_directory}/04_blast_output/02_taxonomy/lineage_5_hit_{{RUN}}.csv",
-        lin5c = f"{output_directory}/04_blast_output/02_taxonomy/lineage_5_hit_{{RUN}}_cor.csv",
-        blst = f"{output_directory}/04_blast_output/02_taxonomy/Blast_5_hit_{{RUN}}.csv",
-        sort_seq_ids = f"{output_directory}/04_blast_output/02_taxonomy/sort_seq_ids_{{RUN}}.csv"
+        lin = f"{output_directory}/04_blast_output/02_taxonomy/lineage_{RUN}.csv",
+        lin5 = f"{output_directory}/04_blast_output/02_taxonomy/lineage_5_hit_{RUN}.csv",
+        lin5c = f"{output_directory}/04_blast_output/02_taxonomy/lineage_5_hit_{RUN}_cor.csv",
+        blst = f"{output_directory}/04_blast_output/02_taxonomy/Blast_5_hit_{RUN}.csv",
+        sort_seq_ids = f"{output_directory}/04_blast_output/02_taxonomy/sort_seq_ids_{RUN}.csv"
     params:
         getr = f"{scriptdir}get_rank.py",
         com = f"{scriptdir}complet_taxo_dic_v3.py",
@@ -85,7 +114,7 @@ rule Build_array_coverage_nr:
     input:
         lin = rules.get_nr_lineage_from_taxids.output.lin
     output:
-        by_seq = f"{output_directory}/04_blast_output/03_coverage/count_table_contigs_{{RUN}}.csv",
+        by_seq = f"{output_directory}/04_blast_output/03_coverage/count_table_contigs_{RUN}.csv",
     params:
         script = f"{scriptdir}build_count_table.py",
         countdir = f"{output_directory}/03_mapping_on_assembly/03_CountsMapping/"
@@ -100,7 +129,7 @@ rule Count_coverage_raw_nr:
     input:
         count_table = rules.Build_array_coverage_nr.output.by_seq
     output:
-        by_seq = f"{output_directory}/04_blast_output/03_coverage/count_contigs_raw_{{RUN}}.csv"
+        by_seq = f"{output_directory}/04_blast_output/03_coverage/count_contigs_raw_{RUN}.csv"
     params:
         script = f"{scriptdir}build_count_table.py",
         countdir = f"{output_directory}/03_mapping_on_assembly/02_CountsMapping_raw/"
@@ -116,8 +145,8 @@ rule complete_taxo:
         lin = rules.get_nr_lineage_from_taxids.output.lin,
         lin5c = rules.get_nr_lineage_from_taxids.output.lin5c
     output:
-        lineage1 = f"{output_directory}/04_blast_output/03_coverage/lineage_{{RUN}}_tmp.csv",
-        lineage = f"{output_directory}/04_blast_output/03_coverage/lineage_cor_{{RUN}}.csv"
+        lineage1 = f"{output_directory}/04_blast_output/03_coverage/lineage_{RUN}_tmp.csv",
+        lineage = f"{output_directory}/04_blast_output/03_coverage/lineage_cor_{RUN}.csv"
     params:
         script_mult = f"{scriptdir}multihit.py",
         script_compt = f"{scriptdir}complet_taxo_dic_v3.py",
@@ -136,7 +165,7 @@ rule extract_viral_ids:
         lineage = rules.complete_taxo.output.lineage,
         sort_seq_ids = rules.get_nr_lineage_from_taxids.output.sort_seq_ids
     output:
-        taxo = f"{output_directory}/04_blast_output/02_taxonomy/viral_contigs_ids_{{RUN}}.txt"
+        taxo = f"{output_directory}/04_blast_output/02_taxonomy/viral_contigs_ids_{RUN}.txt"
     envmodules: config['module_file']
     shell:
         """
@@ -149,19 +178,37 @@ rule extract_viral_contigs:
         contig = rules.Merge_Mega_cap_contigs.output.final_assembly,
         viral_cont_IDS = rules.extract_viral_ids.output.taxo
     output:
-        viral_cont =  f"{output_directory}/02_assembly_results/{{RUN}}_viral_contigs.fa"
+        viral_cont =  f"{output_directory}/02_assembly_results/{RUN}_viral_contigs.fa"
     envmodules: config['module_file']
     shell:
         """
         perl -ne 'if(/^>(\S+)/){{$c=$i{{$1}}}}$c?print:chomp;$i{{$_}}=1 if @ARGV' {input.viral_cont_IDS} {input.contig} > {output.viral_cont};
         """
 
+
+rule split_fasta_contigs_blastnt:
+    input:
+        viral_cont = rules.extract_viral_contigs.output.viral_cont
+    output:
+        expand(f"{output_directory}/02_assembly_results/split_contigs_viral/{RUN}_viral_contigs.part_{{chunk}}.fa", chunk=CHUNKS)
+    params:
+        nb_file = nb_split_file,
+        output_directory = f"{output_directory}/02_assembly_results/split_contigs_viral/"
+    envmodules: config['module_file']
+    shell:
+        """
+        mkdir -p {params.output_directory}
+        seqkit split -p {params.nb_file} -O {params.output_directory} {input.viral_cont}
+        """
+
+
+
 rule Blast_contigs_on_nt:
     input:
         contig = rules.Merge_Mega_cap_contigs.output.final_assembly,
-        viral_cont = rules.extract_viral_contigs.output.viral_cont
+        viral_cont = f"{output_directory}/02_assembly_results/split_contigs_viral/{RUN}_viral_contigs.part_{{chunk}}.fa"
     output:
-        blast = f"{output_directory}/04_blast_output/04_blast_nt_results/Contigs_{{RUN}}.blast_nt_results.tsv"
+        blast = temp(f"{output_directory}/04_blast_output/04_blast_nt_results/Contigs_{RUN}.blast_nt_results_{{chunk}}.tsv")
     params:
         blastDBpath=base_nt
     threads: threads_Blast_contigs_on_nt
@@ -171,11 +218,21 @@ rule Blast_contigs_on_nt:
         blastn -task blastn -db {params.blastDBpath} -query {input.viral_cont} -num_threads {threads}  -evalue 0.001  -max_hsps 1 -max_target_seqs 10 -outfmt "6 qseqid sseqid qlen slen length qstart qend sstart send qcovhsp pident evalue bitscore"  -out {output.blast}
         """
 
+rule merge_blastnt_results:
+    input:
+        expand(f"{output_directory}/04_blast_output/04_blast_nt_results/Contigs_{RUN}.blast_nt_results_{{chunk}}.tsv", chunk=CHUNKS)
+    output:
+        f"{output_directory}/04_blast_output/01_blast_nt_results/Contigs_{RUN}.blast_nt_results_raw.tsv"
+    shell:
+        """
+        cat {input} > {output}
+        """
+
 rule extract_seq_acc:
     input:
-        blast_result = rules.Blast_contigs_on_nt.output.blast
+        blast_result = rules.merge_blastnt_results.output
     output:
-        temp = f"{output_directory}/04_blast_output/04_blast_nt_results/Contigs_{{RUN}}.blast_nt_results_tmp.tsv"
+        temp = f"{output_directory}/04_blast_output/04_blast_nt_results/Contigs_{RUN}.blast_nt_results_tmp.tsv"
     envmodules: config['module_file']
     shell:
         """
@@ -186,22 +243,22 @@ rule extract_tax_ids:
     input:
         acc_ids = rules.extract_seq_acc.output.temp
     output:
-        tax_id = f"{output_directory}/04_blast_output/03_blast_nt_results/tax_ids_{{RUN}}.tsv"
+        tax_id = f"{output_directory}/04_blast_output/03_blast_nt_results/tax_ids_{RUN}.tsv"
     params:
         basetaxoDBpath=base_taxo_nt
     envmodules: config['module_file']
     shell:
         """
-        for i in `cat {input.acc_ids}` ; do LC_ALL=C  grep $i {params.basetaxoDBpath} | awk '{{print $1,$3}}' >> {output.tax_id}; done || true
+        for i in `cut -f2 {input.acc_ids} | sort | uniq` ; do LC_ALL=C  grep $i {params.basetaxoDBpath} | awk '{{print $1,$3}}' >> {output.tax_id}; done || true
         """
 
 rule join_blst_tax:
     input:
         tax_ids = rules.extract_tax_ids.output.tax_id, 
-        blst = rules.Blast_contigs_on_nt.output.blast,
+        blst = rules.merge_blastnt_results.output,
         blst_ids = rules.extract_seq_acc.output.temp
     output:
-        blst = f"{output_directory}/04_blast_output/05_taxonomy_nt/Seq_hit_nt_{{RUN}}.csv"
+        blst = f"{output_directory}/04_blast_output/05_taxonomy_nt/Seq_hit_nt_{RUN}.csv"
     envmodules: config['module_file']
     shell:
         """
@@ -214,8 +271,8 @@ rule get_nt_lineage_from_taxids:
     input:
         taxo = rules.join_blst_tax.output.blst
     output:
-        lin = f"{output_directory}/04_blast_output/05_taxonomy_nt/lineage_nt_{{RUN}}.csv",
-        stat = f"{output_directory}/04_blast_output/05_taxonomy_nt/stat_by_seq_nt_{{RUN}}.csv"
+        lin = f"{output_directory}/04_blast_output/05_taxonomy_nt/lineage_nt_{RUN}.csv",
+        stat = f"{output_directory}/04_blast_output/05_taxonomy_nt/stat_by_seq_nt_{RUN}.csv"
     params:
         f"{scriptdir}get_rank.py"
     envmodules: config['module_file']
@@ -231,7 +288,7 @@ rule intergreted_vir_check:
         stat = rules.join_blst_tax.output.blst,
         lineage = rules.complete_taxo.output.lineage
     output:
-        tmp = f"{output_directory}/04_blast_output/interg_virus_{{RUN}}.csv"
+        tmp = f"{output_directory}/04_blast_output/interg_virus_{RUN}.csv"
     envmodules: config['module_file']
     shell:
         """
@@ -255,7 +312,7 @@ rule get_host:
         acc_ids = f"{output_directory}/05_depth/split_vir/split.{{i}}",
         by_seq = rules.Join_seq_acc_taxo_nr.output.taxo
     output:
-        split_host_tax = f"{output_directory}/05_depth/split_vir/{{RUN}}_host_tax.{{i}}.csv"
+        split_host_tax = f"{output_directory}/05_depth/split_vir/{RUN}_host_tax.{{i}}.csv"
     params:
         script = f"{scriptdir}get_host.py",
         host_db = f"{scriptdir}virushostdb1_21.csv"
@@ -277,7 +334,7 @@ rule join_host_tax:
     input:
         aggregate_input_host
     output:
-        host_lineage=f"{output_directory}/06_final_data/hosts_lineage_{{RUN}}.csv"
+        host_lineage=f"{output_directory}/06_final_data/hosts_lineage_{RUN}.csv"
     envmodules: config['module_file']
     shell:
         """
@@ -291,7 +348,7 @@ rule merge_vir_check:
         stat = rules.join_blst_tax.output.blst,
         lineage = rules.complete_taxo.output.lineage
     output:
-        vir_ch = f"{output_directory}/04_blast_output/05_taxonomy_nt/intergreted_vir_check_{{RUN}}.csv"
+        vir_ch = f"{output_directory}/04_blast_output/05_taxonomy_nt/intergreted_vir_check_{RUN}.csv"
     envmodules: config['module_file']
     shell:
         """
@@ -304,7 +361,7 @@ rule log_Quantify_contigs_coverage_raw:
         Unmapped = rules.Quantify_contigs_coverage_raw.output.Unmapped,
         viral_cont = rules.extract_viral_ids.output.taxo
     output:
-        coverage = f"{output_directory}/05_depth/00_Coverage_raw/{{smp}}_coverage_raw_{{RUN}}.txt"
+        coverage = f"{output_directory}/05_depth/00_Coverage_raw/{{smp}}_coverage_raw_{RUN}.txt"
     envmodules: config['module_file']
     shell:
         """

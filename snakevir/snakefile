@@ -160,7 +160,8 @@ rule Clustering_OTU:
         count_file = rules.Build_array_coverage_nr.output.by_seq,
         cov10_file = rules.results_depth.output.range_10x,
         coverage_stat_file = rules.results_depth.output.stats_deph,
-         tools_version_directory = rules.Retrieve_vesion_tools.output
+        tools_version_directory = rules.Retrieve_vesion_tools.output,
+        logs_report = rules.Create_logs_report.output
     output:
         directory = directory(f"{output_directory}/06_final_data/{{RUN}}_OTU/"),
         report = f"{output_directory}/06_final_data/clustering_Report_{{RUN}}.html"
@@ -174,5 +175,5 @@ rule Clustering_OTU:
     envmodules: config['module_file']
     shell:
         """
-        Rscript -e 'rmarkdown::render("{params.script}", output_file="{output.report}", quiet=TRUE, params = list(output_directory = "{output.directory}", tools_version_directory = "{input.tools_version_directory}", diamond_database = "{params.diamond_database}", blast_database = "{params.blast_database}", blast_file = "{input.blast_file}", taxo_file = "{input.taxo_file}", host_file = "{input.host_file}", count_file = "{input.count_file}", cov10_file = "{input.cov10_file}", coverage_stat_file = "{input.coverage_stat_file}", min_read_by_sample = {params.min_read_by_sample}, min_read_by_contig = {params.min_read_by_contig} ,run_name = "{params.run_name}"))'
+        Rscript -e 'rmarkdown::render("{params.script}", output_file="{output.report}", quiet=TRUE, params = list(output_directory = "{output.directory}", logs_report = {input.logs_report},tools_version_directory = "{input.tools_version_directory}", diamond_database = "{params.diamond_database}", blast_database = "{params.blast_database}", blast_file = "{input.blast_file}", taxo_file = "{input.taxo_file}", host_file = "{input.host_file}", count_file = "{input.count_file}", cov10_file = "{input.cov10_file}", coverage_stat_file = "{input.coverage_stat_file}", min_read_by_sample = {params.min_read_by_sample}, min_read_by_contig = {params.min_read_by_contig} ,run_name = "{params.run_name}"))'
         """

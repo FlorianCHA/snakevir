@@ -1,29 +1,30 @@
-R1list=expand(f"{output_directory}/01_read_processing/07_flash_merge_pair/{{smp}}.notCombined_1.fastq",smp=SAMPLES)
-R2list=expand(f"{output_directory}/01_read_processing/07_flash_merge_pair/{{smp}}.notCombined_2.fastq",smp=SAMPLES)
-PElist=expand(f"{output_directory}/01_read_processing/08_concat_single/{{smp}}_widows.fastq",smp=SAMPLES)
+R1list=expand(f"{output_directory}/01_read_processing/07_flash_merge_pair/{{smp}}.notCombined_1.fastq.gz",smp=SAMPLES)
+R2list=expand(f"{output_directory}/01_read_processing/07_flash_merge_pair/{{smp}}.notCombined_2.fastq.gz",smp=SAMPLES)
+PElist=expand(f"{output_directory}/01_read_processing/08_concat_single/{{smp}}_widows.fastq.gz",smp=SAMPLES)
 
 
 rule Megahit_Assembly:
     input:
-        R1s = expand(f"{output_directory}/01_read_processing/07_flash_merge_pair/{{smp}}.notCombined_1.fastq",smp=SAMPLES),
-        R2s = expand(f"{output_directory}/01_read_processing/07_flash_merge_pair/{{smp}}.notCombined_2.fastq",smp=SAMPLES),
-        PEs = expand(f"{output_directory}/01_read_processing/08_concat_single/{{smp}}_widows.fastq",smp=SAMPLES)
+        R1s = expand(f"{output_directory}/01_read_processing/07_flash_merge_pair/{{smp}}.notCombined_1.fastq.gz",smp=SAMPLES),
+        R2s = expand(f"{output_directory}/01_read_processing/07_flash_merge_pair/{{smp}}.notCombined_2.fastq.gz",smp=SAMPLES),
+        PEs = expand(f"{output_directory}/01_read_processing/08_concat_single/{{smp}}_widows.fastq.gz",smp=SAMPLES)
     params:
         prefix=f"{output_directory}/02_assembly_results",
         tmp=f"{output_directory}/02_assembly_results_tmp",
         commaR1s = ",".join(R1list),
         commaR2s = ",".join(R2list),
-        commaPEs = ",".join(PElist)
+        commaPEs = ",".join(PElist),
+        RUN=RUN
     output:
-        assembly = f"{output_directory}/02_assembly_results/{{RUN}}.contigs.fa"
+        assembly = f"{output_directory}/02_assembly_results/{RUN}.contigs.fa"
     log:
-        f"{output_directory}/logs/02_assembly_results/Megahit_{{RUN}}.log"
+        f"{output_directory}/logs/02_assembly_results/Megahit_{RUN}.log"
     threads: threads_Megahit_Assembly
     envmodules: config['module_file']
     shell:
         """
         if [ -e {params.tmp} ]; then rm -rf {params.tmp}; fi 
-        megahit -t {threads}  --mem-flag 2 -m 1 -1 {params.commaR1s} -2 {params.commaR2s} -r {params.commaPEs} -o {params.tmp} --out-prefix {wildcards.RUN} --continue  2> {log}
+        megahit -t {threads}  --mem-flag 2 -m 1 -1 {params.commaR1s} -2 {params.commaR2s} -r {params.commaPEs} -o {params.tmp} --out-prefix {params.RUN} --continue  2> {log}
         rm -rf {params.prefix}; mv {params.tmp} {params.prefix}
         """
 
@@ -31,11 +32,11 @@ rule Cap3_Assembly:
     input:
         raw_assembly = rules.Megahit_Assembly.output.assembly
     output:
-        assembly = f"{output_directory}/02_assembly_results/{{RUN}}_Assembly_results",
-        contig = f"{output_directory}/02_assembly_results/{{RUN}}.contigs.fa.cap.contigs",
-        sig = f"{output_directory}/02_assembly_results/{{RUN}}.contigs.fa.cap.singlets"
+        assembly = f"{output_directory}/02_assembly_results/{RUN}_Assembly_results",
+        contig = f"{output_directory}/02_assembly_results/{RUN}.contigs.fa.cap.contigs",
+        sig = f"{output_directory}/02_assembly_results/{RUN}.contigs.fa.cap.singlets"
     log:
-        f"{output_directory}/logs/02_assembly_results/cap3_{{RUN}}.log"
+        f"{output_directory}/logs/02_assembly_results/cap3_{RUN}.log"
     envmodules: config['module_file']
     shell:
         """
@@ -47,7 +48,7 @@ rule Merge_Mega_cap_contigs:
         contig = rules.Cap3_Assembly.output.contig,
         sig = rules.Cap3_Assembly.output.sig
     output:
-        final_assembly = f"{output_directory}/02_assembly_results/{{RUN}}_contigs_assembly_results.fa"
+        final_assembly = f"{output_directory}/02_assembly_results/{RUN}_contigs_assembly_results.fa"
     envmodules: config['module_file']
     shell:
         """
@@ -58,7 +59,7 @@ rule Assembly_informations:
     input:
         assembly = rules.Merge_Mega_cap_contigs.output.final_assembly
     output:
-        stat_assembly = f"{output_directory}/logs/02_assembly_results/logsAssembly/{{RUN}}_assembly_stats.txt"
+        stat_assembly = f"{output_directory}/logs/02_assembly_results/logsAssembly/{RUN}_assembly_stats.txt"
     envmodules: config['module_file']
     shell:
         """
@@ -69,7 +70,7 @@ rule Index_Assembly:
     input:
         assembly = rules.Merge_Mega_cap_contigs.output.final_assembly
     output:
-        index = f"{output_directory}/02_assembly_results/{{RUN}}_contigs_assembly_results.fa.bwt"
+        index = f"{output_directory}/02_assembly_results/{RUN}_contigs_assembly_results.fa.bwt"
     envmodules: config['module_file']
     shell:
         """
