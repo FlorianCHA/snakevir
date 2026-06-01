@@ -64,7 +64,7 @@ Map_On_Assembly:
 Blast_contigs_on_nr:
   partition: long
   cpus-per-task: '16'
-  mem: 100G
+  mem: 150G
 
 complete_taxo:
   partition: long
