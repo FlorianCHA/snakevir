@@ -401,8 +401,7 @@ rule Concatenate_Widows_And_Merged:
     envmodules: config['module_file']
     shell:
         """
-        zcat {input.Merged} > {params.final}
-        cat {input.WI}  >> {params.final}
+        zcat {input.Merged} {input.WI}> {params.final}
         gzip -f {params.final}
         """
 

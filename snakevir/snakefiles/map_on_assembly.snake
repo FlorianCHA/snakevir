@@ -1,9 +1,9 @@
 rule Map_On_Assembly:
     input:
-        pairs_R1 = rules.Extract_Unmapped_bact_Reads.output.pairs_R1,
-        pairs_R2 = rules.Extract_Unmapped_bact_Reads.output.pairs_R2,
-        WI = rules.Extract_Unmapped_bact_Reads.output.WI,
-        CONTIGS = rules.Merge_Mega_cap_contigs.output.final_assembly,
+        pairs_R1 = rules.retrieve_viral_read.output.viral_reads1,
+        pairs_R2 = rules.retrieve_viral_read.output.viral_reads2,
+        WI = rules.retrieve_viral_read.output.viral_wi,
+        CONTIGS = rules.Merge_Mega_cap_Viral_contigs.output.final_assembly,
         INDEX = rules.Index_Assembly.output.index
     output:
         raw = f"{output_directory}/03_mapping_on_assembly/01_mapping/raw_{{smp}}_on_{RUN}.bam",
