@@ -1,0 +1,231 @@
+nb_split_file = 5
+CHUNKS = [f"{i:03d}" for i in range(1,nb_split_file+1)]
+
+R1list=expand(f"{output_directory}/01_read_processing/07_flash_merge_pair/{{smp}}.notCombined_1.fastq.gz",smp=SAMPLES)
+R2list=expand(f"{output_directory}/01_read_processing/07_flash_merge_pair/{{smp}}.notCombined_2.fastq.gz",smp=SAMPLES)
+PElist=expand(f"{output_directory}/01_read_processing/08_concat_single/{{smp}}_widows.fastq.gz",smp=SAMPLES)
+
+
+rule Megahit_Assembly:
+    input:
+        R1s = expand(f"{output_directory}/01_read_processing/07_flash_merge_pair/{{smp}}.notCombined_1.fastq.gz",smp=SAMPLES),
+        R2s = expand(f"{output_directory}/01_read_processing/07_flash_merge_pair/{{smp}}.notCombined_2.fastq.gz",smp=SAMPLES),
+        PEs = expand(f"{output_directory}/01_read_processing/08_concat_single/{{smp}}_widows.fastq.gz",smp=SAMPLES)
+    params:
+        prefix=f"{output_directory}/02_assembly_results",
+        tmp=f"{output_directory}/02_assembly_results_tmp",
+        commaR1s = ",".join(R1list),
+        commaR2s = ",".join(R2list),
+        commaPEs = ",".join(PElist),
+        RUN=RUN
+    output:
+        assembly = f"{output_directory}/02_assembly_results/{RUN}.contigs.fa"
+    log:
+        f"{output_directory}/logs/02_assembly_results/Megahit_{RUN}.log"
+    threads: threads_Megahit_Assembly
+    envmodules: config['module_file']
+    shell:
+        """
+        if [ -e {params.tmp} ]; then rm -rf {params.tmp}; fi 
+        megahit -t {threads}  --mem-flag 2 -m 1 -1 {params.commaR1s} -2 {params.commaR2s} -r {params.commaPEs} -o {params.tmp} --out-prefix {params.RUN} --continue  2> {log}
+        rm -rf {params.prefix}; mv {params.tmp} {params.prefix}
+        """
+
+rule Cap3_Assembly:
+    input:
+        raw_assembly = rules.Megahit_Assembly.output.assembly
+    output:
+        assembly = f"{output_directory}/02_assembly_results/{RUN}_Assembly_results",
+        contig = f"{output_directory}/02_assembly_results/{RUN}.contigs.fa.cap.contigs",
+        sig = f"{output_directory}/02_assembly_results/{RUN}.contigs.fa.cap.singlets"
+    log:
+        f"{output_directory}/logs/02_assembly_results/cap3_{RUN}.log"
+    envmodules: config['module_file']
+    shell:
+        """
+        cap3 {input.raw_assembly}>{output.assembly} 2> {log}
+        """
+
+rule Merge_Mega_cap_contigs:
+    input:
+        contig = rules.Cap3_Assembly.output.contig,
+        sig = rules.Cap3_Assembly.output.sig
+    output:
+        final_assembly = f"{output_directory}/02_assembly_results/{RUN}_contigs_assembly_results.fa"
+    envmodules: config['module_file']
+    shell:
+        """
+        cat {input.contig} {input.sig} > {output.final_assembly}
+        """
+
+rule split_fasta_contigs_blastnr:
+    input:
+        assembly = rules.Merge_Mega_cap_contigs.output.final_assembly
+    output:
+        expand(f"{output_directory}/02_assembly_results/01_all_contig/split_contigs/{RUN}_contigs_assembly_results.part_{{chunk}}.fa", chunk=CHUNKS)
+    params:
+        nb_file = nb_split_file,
+        output_directory = f"{output_directory}/02_assembly_results/01_all_contig/split_contigs/"
+    envmodules: config['module_file']
+    shell:
+        """
+        mkdir -p {params.output_directory}
+        seqkit split -p {params.nb_file} -O {params.output_directory} {input.assembly}
+        """
+
+
+rule Blast_contigs_on_nr:
+    input:
+        assembly = f"{output_directory}/02_assembly_results/01_all_contig/split_contigs/{RUN}_contigs_assembly_results.part_{{chunk}}.fa"
+    output:
+        blast_raw = temp(f"{output_directory}/04_blast_output/01_blast_nr_results/01_all_contig/Contigs_{RUN}.blast_nr_results_raw_{{chunk}}.tsv")
+    params:
+        blastDBpath=base_nr,
+        basetaxoDBpath=base_taxo
+    threads: threads_Blast_contigs_on_nr
+    envmodules: config['module_file']
+    shell:
+        """
+        diamond blastx -b 10.0 -c 1 -p {threads}  -d {params.blastDBpath} --more-sensitive --query {input.assembly} --max-hsps 1 --max-target-seqs 5 --taxonmap {params.basetaxoDBpath} -f 6 qseqid sseqid qlen slen length qstart qend sstart send qcovhsp pident evalue bitscore staxids --out {output.blast_raw};
+        """
+
+rule merge_blastnr_results:
+    input:
+        expand(f"{output_directory}/04_blast_output/01_blast_nr_results/01_all_contig/Contigs_{RUN}.blast_nr_results_raw_{{chunk}}.tsv", chunk=CHUNKS)
+    output:
+        f"{output_directory}/04_blast_output/01_blast_nr_results/01_all_contig/Contigs_{RUN}.blast_nr_results_raw.tsv"
+    shell:
+        """
+        cat {input} > {output}
+        """
+
+rule Filter_poor_qual_Blast_unmapped_on_nr_vir:
+    input:
+        blast_raw = rules.merge_blastnr_results.output
+    output:
+        blast_tsv = f"{output_directory}/04_blast_output/01_blast_nr_results/01_all_contig/Contigs_{RUN}.blast_nr_results.tsv"
+    threads: 5
+    envmodules: config['module_file']
+    shell:
+        """
+        awk '$3 >= 150 {{ print }}' {input.blast_raw} | awk '$5 >= 75 {{ print }}' > {output.blast_tsv}
+        """
+
+rule Filter_join_seq_acc_taxo_nr:
+    input:
+        contigs = rules.Filter_poor_qual_Blast_unmapped_on_nr_vir.output.blast_tsv
+    output:
+        taxo = f"{output_directory}/04_blast_output/02_taxonomy/01_all_contig/Seq_hits_info_{RUN}.csv"
+    envmodules: config['module_file']
+    shell:
+        """
+        cat {input.contigs} | awk -F'\t' '$14!=""' | sort -u -k1,1 | sed "s/;/\t/g" | awk '{{print $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$(NF)}}'| sed "s/ /\t/g" |sed -e 's/\t/,/g'| sed -e '1i\qseqid,sseqid,qlen,slen,length,qstart,qend,sstart,send,qcovhsp,pident,evalue,bitscore,tax_id' > {output.taxo}
+        """
+
+rule Filter_get_nr_lineage_from_taxids:
+    input:
+        seq = rules.Filter_join_seq_acc_taxo_nr.output.taxo,
+        blst = rules.Filter_poor_qual_Blast_unmapped_on_nr_vir.output.blast_tsv
+    output:
+        lin = f"{output_directory}/04_blast_output/02_taxonomy/01_all_contig/lineage_{RUN}.csv",
+        lin5 = f"{output_directory}/04_blast_output/02_taxonomy/01_all_contig/lineage_5_hit_{RUN}.csv",
+        lin5c = f"{output_directory}/04_blast_output/02_taxonomy/01_all_contig/lineage_5_hit_{RUN}_cor.csv",
+        blst = f"{output_directory}/04_blast_output/02_taxonomy/01_all_contig/Blast_5_hit_{RUN}.csv",
+        sort_seq_ids = f"{output_directory}/04_blast_output/02_taxonomy/01_all_contig/sort_seq_ids_{RUN}.csv"
+    params:
+        getr = f"{scriptdir}get_rank.py",
+        com = f"{scriptdir}complet_taxo_dic_v3.py",
+        pickle_shi = f"{scriptdir}correc_taxo.pickle",
+        pickle_cust = f"{scriptdir}custom_taxo.pickle"
+    envmodules: config['module_file']
+    shell:
+        """
+        sort -u -k1,1  {input.seq} |sed -e 's/;/,/g'| awk -F',' '{{print $NF}}'| sort -u | sed '/^$/d' | paste -s -d,| python {params.getr} {output.lin}
+        cat {input.blst} | awk  '$14!=""' |sed "s/;/\t/g" | awk '{{print $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$(NF)}}'| sed "s/ /,/g" |sed -e 's/\t/,/g' |awk -F',' '{{print $NF}}'| sort -u | sed '/^$/d' | paste -s -d,  | python {params.getr} {output.lin5}
+        cat {input.blst} | awk  '$14!=""' |sed "s/;/\t/g" | awk '{{print $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$(NF)}}'| sed "s/ /,/g" |sed -e 's/\t/,/g'| sed -e '1i\qseqid,sseqid,qlen,slen,length,qstart,qend,sstart,send,qcovhsp,pident,evalue,bitscore,tax_id' > {output.blst}
+        python {params.com} {params.pickle_shi} {params.pickle_cust} {output.lin5} {output.lin5c}
+        awk -F "," '{{print $NF, $1}}' {input.seq} | sort -n -k1 > {output.sort_seq_ids}
+
+        """
+
+rule Filter_complete_taxo:
+    input:
+        blast = rules.Filter_get_nr_lineage_from_taxids.output.blst,
+        lin = rules.Filter_get_nr_lineage_from_taxids.output.lin,
+        lin5c = rules.Filter_get_nr_lineage_from_taxids.output.lin5c
+    output:
+        lineage1 = f"{output_directory}/04_blast_output/03_coverage/01_all_contig/lineage_{RUN}_tmp.csv",
+        lineage = f"{output_directory}/04_blast_output/03_coverage/01_all_contig/lineage_cor_{RUN}.csv"
+    params:
+        script_mult = f"{scriptdir}multihit.py",
+        script_compt = f"{scriptdir}complet_taxo_dic_v3.py",
+        pickle_shi = f"{scriptdir}correc_taxo.pickle",
+        pickle_cust = f"{scriptdir}custom_taxo.pickle"
+    envmodules: config['module_file']
+    shell:
+        """
+        python {params.script_mult} {input.blast} {input.lin5c} {input.lin} tmp/lin.tmp
+        cat tmp/lin.tmp |sed -e 's/,/;/g'|sed -e 's/\\t/,/g' > {output.lineage1}
+        python {params.script_compt} {params.pickle_shi} {params.pickle_cust} {output.lineage1} {output.lineage}
+        """
+
+rule Filter_extract_viral_ids:
+    input:
+        lineage = rules.Filter_complete_taxo.output.lineage,
+        sort_seq_ids = rules.Filter_get_nr_lineage_from_taxids.output.sort_seq_ids
+    output:
+        taxo = f"{output_directory}/04_blast_output/02_taxonomy/01_all_contig/viral_contigs_ids_{RUN}.txt"
+    envmodules: config['module_file']
+    shell:
+        """
+        for i in `awk -F',' '{{print $1}}' {input.lineage}|  sort -n ` ; do grep $i {input.sort_seq_ids} | awk '{{print $2}}'; done > {output.taxo}
+        """
+
+
+rule Filter_extract_viral_contigs:
+    input:
+        contig = rules.Merge_Mega_cap_contigs.output.final_assembly,
+        viral_cont_IDS = rules.Filter_extract_viral_ids.output.taxo
+    output:
+        viral_cont =  f"{output_directory}/02_assembly_results/01_all_contig/{RUN}_viral_contigs.fa"
+    envmodules: config['module_file']
+    shell:
+        """
+        perl -ne 'if(/^>(\S+)/){{$c=$i{{$1}}}}$c?print:chomp;$i{{$_}}=1 if @ARGV' {input.viral_cont_IDS} {input.contig} > {output.viral_cont};
+        """
+
+rule bowtie2_index_viral_contigs:
+    input:
+        viral_cont = rules.Filter_extract_viral_contigs.output.viral_cont
+    output:
+        index = f"{output_directory}/02_assembly_results/01_all_contig/{RUN}_viral_contigs.fa.1.bt2"
+    envmodules: config['module_file']
+    shell:
+        """
+        bowtie2-build {input.viral_cont} {input.viral_cont}
+        """
+
+rule retrieve_viral_read:
+    '''
+    This rules allow to retrieve the reads that map on the viral contigs.
+    It is used to perform a second assembly with only the viral reads to try to get more complete viral genomes.
+    '''
+    input:
+        viral_cont = rules.Filter_extract_viral_contigs.output.viral_cont,
+        bowtie_index = rules.bowtie2_index_viral_contigs.output.index,
+        reads1 = rules.Merge_Pairs_With_Flash.output.R1,
+        reads2 = rules.Merge_Pairs_With_Flash.output.R2,
+        wi = rules.Concatenate_Widows_And_Merged.output.final
+    output:
+        viral_reads1 = f"{output_directory}/01_read_processing/09_viral_reads/{{smp}}_viral_reads_1.fastq",
+        viral_reads2 = f"{output_directory}/01_read_processing/09_viral_reads/{{smp}}_viral_reads_2.fastq",
+        viral_wi_paired = temp(f"{output_directory}/01_read_processing/09_viral_reads/{{smp}}_viral_reads_paired_wi.fastq"),
+        viral_wi_wi =  temp(f"{output_directory}/01_read_processing/09_viral_reads/{{smp}}_viral_reads_wi_wi.fastq"),
+        viral_wi = f"{output_directory}/01_read_processing/09_viral_reads/{{smp}}_viral_reads_wi.fastq"
+    envmodules: config['module_file']
+    shell:
+        """
+        bowtie2 -x {input.viral_cont} -1 {input.reads1} -2 {input.reads2} | samtools view -h -b -f 4 | samtools sort | samtools fastq -1 {output.viral_reads1} -2 {output.viral_reads2} -0 {output.viral_wi_paired}
+        bowtie2 -x {input.viral_cont} -U {input.wi} | samtools view -h -b -f 4 | samtools sort | samtools fastq -0 {output.viral_wi_wi}
+        cat {output.viral_wi_wi} {output.viral_wi_paired} > {output.viral_wi} 
+        """

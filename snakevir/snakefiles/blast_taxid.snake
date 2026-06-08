@@ -5,7 +5,7 @@ rule split_fasta_vir_contigs_blastnr:
     input:
         assembly = rules.Merge_Mega_cap_Viral_contigs.output.final_assembly
     output:
-        expand(f"{output_directory}/02_assembly_results/02_Viral_assembly/split_contigs/{RUN}_contigs_assembly_results.part_{{chunk}}.fa", chunk=CHUNKS)
+        expand(f"{output_directory}/02_assembly_results/02_Viral_assembly/split_contigs/{RUN}_viral_contigs_assembly_results.part_{{chunk}}.fa", chunk=CHUNKS)
     params:
         nb_file = nb_split_file,
         output_directory = f"{output_directory}/02_assembly_results/02_Viral_assembly/split_contigs/"
