@@ -43,7 +43,7 @@ for input_files in path_files :
 		list_files.append(file_name)
 
 result_table = pd.DataFrame(columns=csv_columns,index=["Total read R1","Total read R2","Avg read length R1","Avg read length R2","Reads 1 cleaned","Reads 2 cleaned","Avg cleaned read length R1 (after cutadapt)","Avg cleaned read length R2 (after cutadapt)","Avg insert_size","Map on Diptera","UnMapped on Diptera","Map on bacteria","UnMapped on bacteria","Map on Host Genome","UnMapped Host Genome","Total pairs","Combined pairs","Widows","Assembled","Duplicates","Reads_count","Singletons","Nb of contigs","Min contigs length","Max contigs length","Avg contigs length","Contigs with viral hit","Nb of reads with viral hit 'inside' a contig","Nb of reads with viral hit as singleton","Reads with viral hit","% viral reads","Nb of viral hit 1 =< Reads < 10 ","Nb of viral hit 10 =< Reads < 100 ","Nb of viral hit 100 =< Reads < 1000","Nb of viral hit 1000 =< Reads < 10000","Nb of viral hit 10000=< Reads","Nb viral family","Nb viral genus","Nb viral species"])
-contig_length=pd.read_csv(f'{output_directory}/logs/02_assembly_results/logsAssembly/{run}_assembly_stats.txt', sep='	')
+contig_length=pd.read_csv(f'{output_directory}/logs/02_assembly_results/logsAssembly/{run}_viral_assembly_stats.txt', sep='	')
 stats_contigs=contig_length.iloc[:, 1].describe()
 
 contig_length.columns.values[0] = "qseqid"
@@ -228,7 +228,7 @@ for row in row_mean:
 	result_table.at[row,'All-sample']=round(result_table.loc[row,result_table.columns != 'All-sample'].apply(float).mean(axis=0),2)
 
 
-result_table.at['% viral reads',  'All-sample']=round(result_table.loc["Reads with viral hit", 'All-sample'] *100 / (result_table.loc["Total read R1", 'All-sample']+result_table.loc["Total read R2", 'All-sample']),2)
+#result_table.at['% viral reads',  'All-sample']=round(result_table.loc["Reads with viral hit", 'All-sample'] *100 / (result_table.loc["Total read R1", 'All-sample']+result_table.loc["Total read R2", 'All-sample']),2)
 
 
 result_table.to_csv(out)
