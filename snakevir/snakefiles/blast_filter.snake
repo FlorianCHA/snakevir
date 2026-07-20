@@ -225,7 +225,7 @@ rule retrieve_viral_read:
     envmodules: config['module_file']
     shell:
         """
-        bowtie2 -x {input.viral_cont} -1 {input.reads1} -2 {input.reads2} | samtools view -h -b -f 4 | samtools sort | samtools fastq -1 {output.viral_reads1} -2 {output.viral_reads2} -0 {output.viral_wi_paired}
-        bowtie2 -x {input.viral_cont} -U {input.wi} | samtools view -h -b -f 4 | samtools sort | samtools fastq -0 {output.viral_wi_wi}
+        bowtie2 -x {input.viral_cont} -1 {input.reads1} -2 {input.reads2} | samtools view -h -b -F 4 | samtools sort | samtools fastq -1 {output.viral_reads1} -2 {output.viral_reads2} -s {output.viral_wi_paired}
+        bowtie2 -x {input.viral_cont} -U {input.wi} | samtools view -h -b -F 4 | samtools sort | samtools fastq -0 {output.viral_wi_wi}
         cat {output.viral_wi_wi} {output.viral_wi_paired} > {output.viral_wi} 
         """

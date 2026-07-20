@@ -19,7 +19,7 @@ rule split_fasta_vir_contigs_blastnr:
 
 rule Blast_contigs_vir_on_nr:
     input:
-        assembly = f"{output_directory}/02_assembly_results/02_Viral_assembly/split_contigs/{RUN}_contigs_assembly_results.part_{{chunk}}.fa"
+        assembly = f"{output_directory}/02_assembly_results/02_Viral_assembly/split_contigs/{RUN}_viral_contigs_assembly_results.part_{{chunk}}.fa"
     output:
         blast_raw = temp(f"{output_directory}/04_blast_output/01_blast_nr_results/02_Viral_assembly/Contigs_{RUN}.blast_nr_results_raw_{{chunk}}.tsv")
     params:
@@ -193,7 +193,7 @@ rule split_fasta_contigs_blastnt:
         expand(f"{output_directory}/02_assembly_results/02_Viral_assembly/split_contigs_viral/{RUN}_viral_contigs.part_{{chunk}}.fa", chunk=CHUNKS)
     params:
         nb_file = nb_split_file,
-        output_directory = f"{output_directory}/02_assembly_results/split_contigs_viral/"
+        output_directory = f"{output_directory}/02_assembly_results/02_Viral_assembly/split_contigs_viral/"
     envmodules: config['module_file']
     shell:
         """
