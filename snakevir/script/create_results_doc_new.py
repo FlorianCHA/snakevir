@@ -19,7 +19,7 @@ output_directory=sys.argv[10]
 stats_df=pd.read_csv(sys.argv[6], sep=',').drop_duplicates()
 lin_df=pd.read_csv(sys.argv[7], sep=',').drop_duplicates()
 count_df_r=pd.read_csv(sys.argv[8], sep=',').drop_duplicates()
-
+count_df_r.columns = [col.split('_on_')[0] for col in count_df_r.columns]
 stats_df=stats_df[(stats_df.tax_id.isin(lin_df.tax_id))]
 count_df=count_df_r[(count_df_r.qseqid.isin(stats_df.qseqid))]
 stats_df=stats_df[(stats_df.qseqid.isin(count_df.qseqid))]
@@ -34,6 +34,8 @@ tmp_df.to_csv(r'tmp_df.csv')
 
 
 df.to_csv(r'df.csv')
+df.columns = [col.split('_on_')[0] for col in df.columns]
+
 csv_columns=['All-sample']
 list_files=[]
 for input_files in path_files :
@@ -49,6 +51,7 @@ stats_contigs=contig_length.iloc[:, 1].describe()
 contig_length.columns.values[0] = "qseqid"
 
 n=0
+
 for files_name in list_files :
 	if files_name not in df.columns:
 		continue
@@ -56,7 +59,7 @@ for files_name in list_files :
 		for line in cut1_1:
 			if "Total reads processed" in line:
 				c = line.replace(',','').replace(' ','').replace('\n','').split(":")
-				result_table.at['Total read R1', files_name] =int(c[-1])
+				result_table.at['Total read R1', files_name] =int(c[-1])				
 			if "Total written" in line:
 				c1 = line.replace(',','').replace('b',':').replace('\n','').replace(' ','').split(":")
 				result_table.at['Avg read length R1', files_name]="%.2f" % (int(c1[1])/int(c[-1]))
@@ -180,7 +183,6 @@ for files_name in list_files :
 	result_table.at['Nb viral genus', files_name]=df[["genus", files_name]][df[files_name]> 1].genus.value_counts().count()
 	result_table.at['Nb viral species', files_name]=df[["species", files_name]][df[files_name]> 1].species.value_counts().count()
 	raws = df[["species",files_name]].groupby('species',as_index=False).agg({files_name: 'sum' }).drop(columns='species')
-	
 	ranges = [1,10,100,1000,10000]
 	result_table.at['Reads with viral hit', files_name]=raws.values.sum()
 	result_table.at['Nb of viral hit 1 =< Reads < 10 ', files_name]=raws.groupby(pd.cut(raws[files_name], ranges)).count().iloc[0][files_name]

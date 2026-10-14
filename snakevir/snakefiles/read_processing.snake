@@ -262,6 +262,10 @@ rule Extract_Unmapped_genome_host_Reads:
         sam_pairs = rules.bwa_genome_host_mapping.output.mapped_sam,
         sam_WI =  rules.bwa_genome_host_mapping.output.WI_sam
     output:
+        new_R1 =  temp(f"{output_directory}/01_read_processing/06_filtered_fastq_host_genome_mapping/filtered_bacteria_{{smp}}_R1.fastq.gz"),
+        new_R2 =  temp(f"{output_directory}/01_read_processing/06_filtered_fastq_host_genome_mapping/filtered_bacteria_{{smp}}_R2.fastq.gz"),
+        WI=  temp(f"{output_directory}/01_read_processing/06_filtered_fastq_host_genome_mapping/filtered_bacteria_{{smp}}_widows.fastq.gz")
+    params:
         new_R1 =  temp(f"{output_directory}/01_read_processing/06_filtered_fastq_host_genome_mapping/filtered_bacteria_{{smp}}_R1.fastq"),
         new_R2 =  temp(f"{output_directory}/01_read_processing/06_filtered_fastq_host_genome_mapping/filtered_bacteria_{{smp}}_R2.fastq"),
         WI=  temp(f"{output_directory}/01_read_processing/06_filtered_fastq_host_genome_mapping/filtered_bacteria_{{smp}}_widows.fastq")
@@ -275,16 +279,17 @@ rule Extract_Unmapped_genome_host_Reads:
             picard  SamToFastq VALIDATION_STRINGENCY=SILENT I={input.sam_pairs} F={output.new_R1} F2={output.new_R2}
         else
             echo "{input.sam_pairs} is empty."
-            touch {output.new_R1}
-            touch {output.new_R2}
+            touch {params.new_R1}
+            touch {params.new_R2}
         fi
         if [ -s {input.sam_WI} ]
         then
-            picard SamToFastq  VALIDATION_STRINGENCY=SILENT I={input.sam_WI} F={output.WI}
+            picard SamToFastq  VALIDATION_STRINGENCY=SILENT I={input.sam_WI} F={params.WI}
         else
             echo "{input.sam_WI} is empty."
-            touch {output.WI}
+            touch {params.WI}
         fi
+        gzip -f {params.new_R1} {params.new_R2} {params.WI}
         """
  # Extract some stats (logs) from the cleaning steps
 
@@ -402,7 +407,7 @@ rule Concatenate_Widows_And_Merged:
     shell:
         """
         zcat {input.Merged} > {params.final}
-        cat {input.WI}  >> {params.final}
+        zcat {input.WI}  >> {params.final}
         gzip -f {params.final}
         """
 
